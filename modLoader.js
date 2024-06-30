@@ -25,6 +25,22 @@
         const main_script = document.createElement("script");
         main_script.textContent = main_page.body.querySelector("script").textContent;
 
+        for (const module of arras_modules){
+            for(const patch of module.patches){
+                switch(patch.type){
+                    case "baseReplace":{
+                        const replace = patch.replace;
+                        if(replace.mode == "string"){
+                            main_script.textContent = main_script.textContent.replace(replace.what, replace.with);
+                        }else if(replace.mode == "regex"){
+                            // TODO: add regex replace
+                        }
+                    }break;
+                }
+            }
+        }
+
+
         // note: there is a script that is supposed to run on the head, but it's not
         document.head.innerHTML = main_page.head.innerHTML;
         document.body.innerHTML = "";
