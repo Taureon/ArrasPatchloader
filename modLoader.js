@@ -12,6 +12,32 @@
 (async function() {
     'use strict';
 
+    let arras_modules = [
+        {
+            "name": "Mod Loader",
+            "author": "https://github.com/Taureon and https://github.com/ric3cir121",
+            "url": "https://github.com/Taureon/ArrasPatchloader",
+            "patches":[
+                {
+                    "type": "baseReplace",
+                    "replace": {
+                        "mode": "string",
+                        "what": 'fetch("./app.wasm")',
+                        "with": 'fetch("../app.wasm")'
+                    }
+                },
+                {
+                    "type": "baseReplace",
+                    "replace": {
+                        "mode": "string",
+                        "what": 'fetch("/CHANGELOG.md")',
+                        "with": 'fetch("../CHANGELOG.md")'
+                    }
+                }
+            ]
+        }
+    ]
+
     if(window.location.pathname == "/mod" || window.location.pathname == "/mod/"){
         window.history.pushState({}, null, "/mod/"+window.location.hash);
 
