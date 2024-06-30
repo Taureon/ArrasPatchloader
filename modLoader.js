@@ -14,9 +14,9 @@
 
     let arras_modules = [
         {
-            "name": "Mod Loader",
-            "author": "https://github.com/Taureon and https://github.com/ric3cir121",
-            "url": "https://github.com/Taureon/ArrasPatchloader",
+            "name": "Arras.io",
+            "author": undefined,
+            "url": "arras.io",
             "patches":[
                 {
                     "type": "baseReplace",
@@ -32,6 +32,29 @@
                         "mode": "string",
                         "what": 'fetch("/CHANGELOG.md")',
                         "with": 'fetch("../CHANGELOG.md")'
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Mod Loader",
+            "author": "https://github.com/Taureon and https://github.com/ric3cir121",
+            "url": "https://github.com/Taureon/ArrasPatchloader",
+            "patches":[
+                {
+                    "type": "baseReplace",
+                    "replace": {
+                        "mode": "string",
+                        "what": 'if(!r.isTrusted)return;',
+                        "with": ''
+                    }
+                },
+                {
+                    "type": "baseReplace",
+                    "replace": {
+                        "mode": "string",
+                        "what": 't.isTrusted',
+                        "with": 'true'
                     }
                 }
             ]
