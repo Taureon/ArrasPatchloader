@@ -124,7 +124,7 @@
         }
     }
 
-    if (patchFails) {
+    if (patchFails.length > 0) {
         console.log(`Attempted to apply all patches, but the following errors occurred:`);
         for (let { module, patchIndex, error } of patchFails) {
             console.log(`
