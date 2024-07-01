@@ -3,7 +3,7 @@
 // @namespace    arras.io.patchloader
 // @version      2024-06-30
 // @description  An userscript that loads script patches for Arras.io
-// @author       https://github.com/Taureon, https://github.com/ric3cir121
+// @author       https://github.com/Taureon, https://github.com/Ric3cir121
 // @match        *://arras.io/mod*
 // @icon         https://arras.io/favicon/base.svg
 // @grant        none
@@ -80,7 +80,7 @@
 
     let arras_modules = [{
         name: 'Patchloader Builtin',
-        author: 'Taureon, ric3cir121',
+        author: 'Taureon, Ric3cir121',
         description: 'Built-in patches to make Arras.io work with the Patchloader',
         url: 'https://github.com/Taureon/ArrasPatchloader',
         patches: [{
@@ -104,12 +104,12 @@
         }, {
             type: 'append',
             data: {
-                appendValue: `console.log('%c Arras.io Patchloader by Taureon and ric3cir121 has been loaded! ', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000;')`
+                appendValue: `console.log('%c Arras.io Patchloader by Taureon and Ric3cir121 has been loaded! ', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000;')`
             }
         }]
     },{
         name: 'Patchloader API',
-        author: 'Taureon, ric3cir121',
+        author: 'Taureon, Ric3cir121',
         description: 'APIs to make Arras.io interaction with patches easier',
         url: 'https://github.com/Taureon/ArrasPatchloader',
         patches: [{
