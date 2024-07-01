@@ -48,7 +48,7 @@
 
         switch (patch.replaceMode) {
             case 'string': replaceValue = patch.replaceValue; break;
-            case 'function': replaceValue = new Function(patch.replaceValue); break;
+            case 'function': replaceValue = new Function(...patch.replaceValue); break;
             default: throw new Error(`replaceMode "${patch.replaceMode}" does not exist or is otherwise written incorrectly`);
         }
 
@@ -63,11 +63,17 @@
     function patchPrepend (patch) { prepends.push(patch.prependValue); }
     function patchAppend (patch) { appends.push(patch.appendValue); }
 
+    function patchFunction (main_script, data) {
+        let func = new Function(...data.func);
+        main_script.textContent = func(main_script.textContent);
+    }
+
     function applyPatch (main_script, { type, data }) {
         switch (type) {
             case 'replace': return patchReplace(main_script, data);
             case 'prepend': return patchPrepend(data);
             case 'append': return patchAppend(data);
+            case 'function': return patchFunction(main_script, data);
             default: throw new Error(`type "${type}" does not exist or is otherwise written incorrectly`);
         }
     }
