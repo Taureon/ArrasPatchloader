@@ -217,6 +217,36 @@
                     }
                 }`
             }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: '(t=e[t]).width=r,t.height=a',
+                replaceValue: '(t=e[t]).width=r,t.height=a;arrasDispatchInternalEvent({type:"resize", width:r, height:a});'
+            }
+        }, {
+            type: 'prepend',
+            data: {
+                prependValue: `
+                let arrasEventListeners = {};
+                let arrasEventListenersNonce = 0;
+                function arrasDispatchInternalEvent(event){
+                    if(typeof arrasEventListeners[event.type] !== 'undefined' && Object.keys(arrasEventListeners[event.type]).length > 0){
+                        for(const func of Object.values(arrasEventListeners[event.type])){
+                            func(event);
+                        }
+                    }
+                }
+                function arrasAddEventListener(type, func){
+                    if(typeof arrasEventListeners[type] === 'undefined'){
+                        arrasEventListeners[type] = {}
+                    }
+                    arrasEventListeners[type][arrasEventListenersNonce] = func;
+                    return {type:type, key:arrasEventListenersNonce++};
+                }`
+            }
         }]
     }];
 
