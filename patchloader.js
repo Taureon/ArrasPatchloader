@@ -218,15 +218,6 @@
                 }`
             }
         }, {
-            type: 'replace',
-            data: {
-                all: true,
-                searchMode: 'string',
-                replaceMode: 'string',
-                searchValue: '(t=e[t]).width=r,t.height=a',
-                replaceValue: '(t=e[t]).width=r,t.height=a;arrasDispatchInternalEvent({type:"resize", width:r, height:a});'
-            }
-        }, {
             type: 'prepend',
             data: {
                 prependValue: `
@@ -246,6 +237,81 @@
                     arrasEventListeners[type][arrasEventListenersNonce] = func;
                     return {type:type, key:arrasEventListenersNonce++};
                 }`
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: '(t=e[t]).width=r,t.height=a',
+                replaceValue: `(t=e[t]).width=r,t.height=a;
+                if(t.parentElement){
+                    if(t.parentElement.id == 'canvas'){
+                        arrasDispatchInternalEvent({type:'resize', width:r, height:a});
+                    }
+                }`
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: 'e[1]||requestAnimationFrame(t)',
+                replaceValue: 'e[1]||requestAnimationFrame(t);arrasDispatchInternalEvent({type:"animationFrame", callback:t})'
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: '(t=e[t]).id="canvas",document.body.appendChild(t)',
+                replaceValue: '(t=e[t]).id="canvas",document.body.appendChild(t);arrasDispatchInternalEvent({type:"canvas", parent:t, canvas:r})'
+            }
+        }, {
+            type: 'append',
+            data: {
+                appendValue: `
+                arrasAddEventListener('canvas',async function(event){
+                    let canvasDiv = document.createElement('div');
+                    canvasDiv.style['z-index'] = '2';
+                    canvasDiv.id = 'patchLoaderCanvas';
+                    document.body.appendChild(canvasDiv);
+                    
+                    let canvas = document.createElement('canvas');
+                    canvas.width = '0';
+                    canvas.height = '0';
+                    canvas.style.left = '0';
+                    canvas.style.top = '0';
+                    canvas.style.position = 'absolute';
+                    canvas.style['background-color'] = '#00000000';
+                    document.getElementById('patchLoaderCanvas').appendChild(canvas);
+                });
+                arrasAddEventListener('resize', (event)=>{
+                    if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        canvas.width = event.width;
+                        canvas.height = event.height;
+                    }
+                });
+                arrasAddEventListener('animationFrame', ()=>{
+                    if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        ctx = canvas.getContext("2d");
+
+                        ctx.beginPath();
+                        /*
+                            The following commented code draws a red square in the top left corner
+                        */
+                        /*ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        ctx.rect(50, 50, 50, 50);
+                        ctx.fillStyle = "#FF0000";
+                        ctx.fill();*/
+                        ctx.closePath();
+                    }
+                });`
             }
         }]
     }];
