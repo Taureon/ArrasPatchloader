@@ -145,21 +145,76 @@
                 appendValue: `
                 class ArrasKeyboardEvent {
                     constructor(type, ctrlKey, altKey, shiftKey, metaKey, key, code) {
-                        this.type = type;
-                        this.ctrlKey = ctrlKey;
-                        this.altKey = altKey;
-                        this.shiftKey = shiftKey;
-                        this.metaKey = metaKey;
-                        this.key = key;
-                        this.code = code;
+                        if(type instanceof KeyboardEvent){
+                            this.type = type.type;
+                            this.ctrlKey = type.ctrlKey;
+                            this.altKey = type.altKey;
+                            this.shiftKey = type.shiftKey;
+                            this.metaKey = type.metaKey;
+                            this.key = type.key;
+                            this.code = type.code;
+                        }else{
+                            this.type = type;
+                            this.ctrlKey = ctrlKey;
+                            this.altKey = altKey;
+                            this.shiftKey = shiftKey;
+                            this.metaKey = metaKey;
+                            this.key = key;
+                            this.code = code;
+                        }
                     }
                 }
-                function arrasDispatchEvent(type, ctrlKey, altKey, shiftKey, metaKey, key, code) {
-                    if(type instanceof ArrasKeyboardEvent){
-                        arrasDispatchEvent(type.type, type.ctrlKey, type.altKey, type.shiftKey, type.metaKey, type.key, type.code);
+                class ArrasMouseEvent {
+                    constructor(type, clientX, clientY, button, deltaX, deltaY, deltaMode) {
+                        if(type instanceof MouseEvent){
+                            this.type = type.type;
+                            this.clientX = type.clientX;
+                            this.clientY = type.clientY;
+                            this.button = type.button;
+                            this.deltaX = type.deltaX;
+                            this.deltaY = type.deltaY;
+                            this.deltaMode = type.deltaMode;
+                        }else{
+                            this.type = type;
+                            this.clientX = clientX;
+                            this.clientY = clientY;
+                            this.button = button;
+                            this.deltaX = deltaX;
+                            this.deltaY = deltaY;
+                            this.deltaMode = deltaMode;
+                        }
                     }
-                    document.body.dispatchEvent(new KeyboardEvent(type,{ctrlKey:ctrlKey, altKey:altKey, shiftKey:shiftKey, metaKey:metaKey, key:key, code:code,
-                        bubbles:true, cancelable:true, view:window, returnValue:false, target:document.body}));
+                }
+                class ArrasTouchEvent {
+                    constructor(type, changedTouches) {
+                        if(type instanceof TouchEvent){
+                            this.type = type.type;
+                            this.changedTouches = [];
+                            for(const changedTouch of type.changedTouches){
+                                this.changedTouches.push({clientX:changedTouch.clientX, clientY:changedTouch.clientY, identifier:changedTouch.identifier});
+                            }
+                        }else{
+                            this.type = type;
+                            this.changedTouches = changedTouches;
+                        }
+                    }
+                }
+
+                function arrasDispatchEvent(event) {
+                    if(event instanceof ArrasKeyboardEvent){
+                        document.body.dispatchEvent(new KeyboardEvent(event.type,{ctrlKey:event.ctrlKey, altKey:event.altKey, shiftKey:event.shiftKey, metaKey:event.metaKey, key:event.key, code:event.code,
+                            bubbles:true, cancelable:true, returnValue:false, view:window, target:document.body}));
+                    }else if(event instanceof ArrasMouseEvent){
+                        document.getElementById("canvas").querySelector("canvas")?.dispatchEvent(new MouseEvent(event.type,{clientX:event.clientX, clientY:event.clientY, button:event.button,
+                            deltaX:event.deltaX, deltaY:event.deltaY, deltaMode:event.deltaMode, bubbles:true, cancelable: true, returnValue:true, view: window, target:canvas}));
+                    }else if(event instanceof ArrasTouchEvent){
+                        let changedTouches = [];
+                        for(changedTouch of event.changedTouches){
+                            changedTouches.push(new Touch({clientX:changedTouch.clientX, clientY:changedTouch.clientY, identifier:changedTouch.identifier, target:canvas}));
+                        }
+                        document.getElementById("canvas").querySelector("canvas")?.dispatchEvent(new TouchEvent(event.type,{changedTouches:changedTouches,
+                            bubbles:true, cancelable: true, returnValue:true, view: window, target:canvas}));
+                    }
                 }`
             }
         }]
