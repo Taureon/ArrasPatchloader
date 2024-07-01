@@ -139,6 +139,29 @@
                 searchValue: 't.isTrusted&&',
                 replaceValue: ''
             }
+        }, {
+            type: 'append',
+            data: {
+                appendValue: `
+                class ArrasKeyboardEvent {
+                    constructor(type, ctrlKey, altKey, shiftKey, metaKey, key, code) {
+                        this.type = type;
+                        this.ctrlKey = ctrlKey;
+                        this.altKey = altKey;
+                        this.shiftKey = shiftKey;
+                        this.metaKey = metaKey;
+                        this.key = key;
+                        this.code = code;
+                    }
+                }
+                function arrasDispatchEvent(type, ctrlKey, altKey, shiftKey, metaKey, key, code) {
+                    if(type instanceof ArrasKeyboardEvent){
+                        arrasDispatchEvent(type.type, type.ctrlKey, type.altKey, type.shiftKey, type.metaKey, type.key, type.code);
+                    }
+                    document.body.dispatchEvent(new KeyboardEvent(type,{ctrlKey:ctrlKey, altKey:altKey, shiftKey:shiftKey, metaKey:metaKey, key:key, code:code,
+                        bubbles:true, cancelable:true, view:window, returnValue:false, target:document.body}));
+                }`
+            }
         }]
     }];
 
