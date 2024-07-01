@@ -52,7 +52,11 @@
             default: throw new Error(`replaceMode "${patch.replaceMode}" does not exist or is otherwise written incorrectly`);
         }
 
-        main_script.textContent = main_script.textContent.replace(searchValue, replaceValue);
+        if (patch.all) {
+            main_script.textContent = main_script.textContent.replaceAll(searchValue, replaceValue);
+        } else {
+            main_script.textContent = main_script.textContent.replace(searchValue, replaceValue);
+        }
     }
 
     function patchPrepend (main_script, patch) {
@@ -79,6 +83,7 @@
         patches: [{
             type: 'replace',
             data: {
+                all: true,
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 'fetch("./app.wasm")',
@@ -87,6 +92,7 @@
         }, {
             type: 'replace',
             data: {
+                all: true,
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 'fetch("/CHANGELOG.md")',
