@@ -104,7 +104,7 @@
         }, {
             type: 'append',
             data: {
-                appendValue: `console.log('%c Arras.io Patchloader by Taureon and Ric3cir121 has been loaded! ', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000;')`
+                appendValue: `console.log('%c Arras.io Patchloader by Taureon and Ric3cir121 has been loaded!', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; padding:12px; border-radius:8px; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000, -1px -1px #000, -1px 1px #000, 1px -1px #000, 1px 1px #000;')`
             }
         }]
     },{
