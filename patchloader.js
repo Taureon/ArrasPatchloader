@@ -59,18 +59,15 @@
         }
     }
 
-    function patchPrepend (main_script, patch) {
-        main_script.textContent = patch.prependValue + ';' + main_script.textContent;
-    }
-    function patchAppend (main_script, patch) {
-        main_script.textContent = main_script.textContent + ';' + patch.appendValue;
-    }
+    let prepends = [], appends = [];
+    function patchPrepend (patch) { prepends.push(patch.prependValue); }
+    function patchAppend (patch) { appends.push(patch.appendValue); }
 
     function applyPatch (main_script, { type, data }) {
         switch (type) {
             case 'replace': return patchReplace(main_script, data);
-            case 'prepend': return patchPrepend(main_script, data);
-            case 'append': return patchAppend(main_script, data);
+            case 'prepend': return patchPrepend(data);
+            case 'append': return patchAppend(data);
             default: throw new Error(`type "${type}" does not exist or is otherwise written incorrectly`);
         }
     }
@@ -129,6 +126,8 @@
             }
         }
     }
+    main_script.textContent = prepends.join(';') + ';' + main_script.textContent;
+    main_script.textContent = main_script.textContent + ';' + appends.join(';');
 
     if (patchFails.length > 0) {
         console.log(`Attempted to apply all patches, but the following errors occurred:`);
