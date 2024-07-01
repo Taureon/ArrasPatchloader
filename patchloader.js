@@ -101,6 +101,44 @@
                 appendValue: `console.log('%c Arras.io Patchloader by Taureon and ric3cir121 has been loaded! ', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000;')`
             }
         }]
+    },{
+        name: 'Patchloader API',
+        author: 'Taureon, ric3cir121',
+        description: 'APIs to make Arras.io interaction with patches easier',
+        url: 'https://github.com/Taureon/ArrasPatchloader',
+        patches: [{
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: 'if(!r.isTrusted)return;',
+                replaceValue: ''
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: 'if(t.isTrusted)',
+                replaceValue: ''
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
+                searchValue: 't.isTrusted&&',
+                replaceValue: ''
+            }
+        }, {
+            type: 'append',
+            data: {
+                appendValue: `console.log('%c Arras.io Patchloader by Taureon and ric3cir121 has been loaded! ', 'background: #444; color: #fff; font-size: 2em; font-weight: bold; text-shadow: -2px 0 #000, 0 2px #000, 2px 0 #000, 0 -2px #000;')`
+            }
+        }]
     }];
 
     arras_modules.push(...await getPatchModules());
