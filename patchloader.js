@@ -119,7 +119,7 @@
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 'if(!r.isTrusted)return;',
-                replaceValue: ''
+                replaceValue: 'if(arrasDispatchInternalEvent({type:r.type, originalEvent:r}))return;'
             }
         }, {
             type: 'replace',
@@ -128,7 +128,7 @@
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 'if(t.isTrusted)',
-                replaceValue: ''
+                replaceValue: 'if(arrasDispatchInternalEvent({type:t.type, originalEvent:t}))return;'
             }
         }, {
             type: 'replace',
@@ -137,7 +137,7 @@
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 't.isTrusted&&',
-                replaceValue: ''
+                replaceValue: 'if(arrasDispatchInternalEvent({type:t.type, originalEvent:t}))return;'
             }
         }, {
             type: 'append',
