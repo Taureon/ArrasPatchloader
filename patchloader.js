@@ -282,7 +282,7 @@
                     canvasDiv.style['z-index'] = '2';
                     canvasDiv.id = 'patchLoaderCanvas';
                     document.body.appendChild(canvasDiv);
-                    
+
                     let canvas = document.createElement('canvas');
                     canvas.width = '0';
                     canvas.height = '0';
