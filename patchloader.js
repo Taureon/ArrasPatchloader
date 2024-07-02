@@ -224,11 +224,14 @@
                 let arrasEventListeners = {};
                 let arrasEventListenersNonce = 0;
                 function arrasDispatchInternalEvent(event){
+                    let canceled = false;
+                    event.preventDefault = ()=>{canceled = true};
                     if(typeof arrasEventListeners[event.type] !== 'undefined' && Object.keys(arrasEventListeners[event.type]).length > 0){
                         for(const func of Object.values(arrasEventListeners[event.type])){
                             func(event);
                         }
                     }
+                    return canceled;
                 }
                 function arrasAddEventListener(type, func){
                     if(typeof arrasEventListeners[type] === 'undefined'){
