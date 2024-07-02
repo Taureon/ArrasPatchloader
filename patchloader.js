@@ -299,20 +299,152 @@
                         canvas.height = event.height;
                     }
                 });
+                let optionsOpen = false;
+                let optionsAnimations = {closed:0, open:-600, tab: 0};
+                let selectedTab = 0;
+                let interfaceSize = 1;
+                let interfaceScale = interfaceSize;
+                let menuTabs = [{name:'Options',click:[100,45]},{name:'Theme',click:[250,45]},{name:'Keybinds',click:[360,45]},{name:'Secrets',click:[450,45]},{name:'Patches',click:[450,45]}]
+                let glowingTab = -1;
                 arrasAddEventListener('animationFrame', ()=>{
                     if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         ctx = canvas.getContext("2d");
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        const scale = interfaceScale;
+
+                        /*
+                            Size of the user interface:
+                            Small:   scale = 0.75;
+                            Regular: scale = 1;
+                            Large:   scale = 1.25;
+                            Mobile:  scale = 1.5;
+                        */
+                        interfaceScale = interfaceSize*Math.max(canvas.width/1920,canvas.height/1080);
+
+                        let arrasApproach = (position, destination)=>{
+                            amount = .04;
+                            return position+(destination-position)*amount;
+                        }
+
+                        optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-600);
+                        optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
+                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab,selectedTab);
+
+                        let toCssColor = (color)=>{return 'rgb('+color.join(',')+')';};
+                        let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
+
+                        let barrelsColor = [0x63, 0x5f, 0x5f];
+                        let bordersColor = [0x13, 0x13, 0x13];
+                        let textColor = [0xf2, 0xf2, 0xf2];
+
+                        let lineWidth = 3;
 
                         ctx.beginPath();
-                        /*
-                            The following commented code draws a red square in the top left corner
-                        */
-                        /*ctx.clearRect(0, 0, canvas.width, canvas.height);
-                        ctx.rect(50, 50, 50, 50);
-                        ctx.fillStyle = "#FF0000";
-                        ctx.fill();*/
+                        ctx.rect((70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale);
+                        ctx.fillStyle = toCssColor(multiplyColor(barrelsColor,1/1.2));
+                        ctx.fill();
                         ctx.closePath();
+
+                        if(glowingTab != -1){
+                            let leftMenuTabEdge = (glowingTab/menuTabs.length*410+70)+optionsAnimations.open,
+                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                            ctx.beginPath();
+                            ctx.rect(leftMenuTabEdge*scale, 20*scale, 410*scale/menuTabs.length, (50+lineWidth/2)*scale+1);
+                            ctx.fillStyle = '#ffffff26';
+                            ctx.fill();
+                            ctx.closePath();
+                        }
+
+                        for(let i=0; i<menuTabs.length; i++){
+                            if(i != menuTabs.length-1){
+                                ctx.beginPath();
+                                ctx.lineWidth = lineWidth*scale;
+                                ctx.strokeStyle = toCssColor(bordersColor);
+                                ctx.lineCap = 'round';
+                                ctx.lineJoin = 'round';
+                                const lineX = (70+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
+                                ctx.moveTo(lineX,20*scale);
+                                ctx.lineTo(lineX,70*scale);
+                                ctx.stroke();
+                            }
+                        }
+
+                        let leftMenuTabEdge = (optionsAnimations.tab/menuTabs.length*410+70)+optionsAnimations.open,
+                            rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+
+                        ctx.beginPath();
+                        ctx.rect(leftMenuTabEdge*scale, 20*scale, 410*scale/menuTabs.length, (50+lineWidth/2)*scale+1);
+                        ctx.fillStyle = toCssColor(barrelsColor);
+                        ctx.fill();
+                        ctx.closePath();
+
+                        ctx.beginPath();
+                        ctx.lineWidth = lineWidth*scale;
+                        ctx.strokeStyle = toCssColor(bordersColor);
+                        ctx.lineCap = 'round';
+                        ctx.linejoin = 'round';
+                        ctx.moveTo(leftMenuTabEdge*scale,20*scale);
+                        ctx.lineTo(leftMenuTabEdge*scale,70*scale);
+                        ctx.lineTo((70+optionsAnimations.open)*scale,70*scale);
+                        ctx.lineTo((70+optionsAnimations.open)*scale,20*scale);
+                        ctx.lineTo((480+optionsAnimations.open)*scale,20*scale);
+                        ctx.lineTo((480+optionsAnimations.open)*scale,(70+lineWidth+1)*scale);
+                        ctx.stroke();
+                        ctx.moveTo((480+optionsAnimations.open)*scale,70*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,70*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,20*scale);
+                        ctx.stroke();
+
+                        for(let i=0; i<5; i++){
+                            let text = menuTabs[i].name;
+                            ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
+                            ctx.lineWidth = 3.75*scale;
+                            ctx.strokeStyle = toCssColor(bordersColor);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.strokeText(text, (70+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 45*scale);
+                            ctx.fillStyle = toCssColor(textColor);
+                            ctx.fillText(text, (70+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 45*scale);
+                        }
+                    }
+                });
+                arrasAddEventListener('mousedown', (event)=>{
+                    if(!event.originalEvent.isTrusted)return;
+                    let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
+                    const scale = interfaceScale;
+                    if(optionsOpen){
+                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
+                            event.preventDefault();
+                            selectedTab = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            selectedTab = Math.min(Math.max(selectedTab,0),menuTabs.length-1);
+                            clickLocation = menuTabs[selectedTab].click
+                            mousedown = new ArrasMouseEvent('mousedown',clickLocation[0],clickLocation[1],0,0,0,1);
+                            mouseup = new ArrasMouseEvent('mouseup',clickLocation[0],clickLocation[1],0,0,0,1);
+                            arrasDispatchEvent(mousedown);
+                            arrasDispatchEvent(mouseup);
+                        }
+                        if(isCursorInsideRect(event.originalEvent,[(20+optionsAnimations.open)*scale,20*scale,(50+optionsAnimations.open)*scale,50*scale])){
+                            optionsOpen = false;
+                        }
+                    }else{
+                        let atSpawnPage = true;
+
+                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,20*scale,((atSpawnPage?115:15)+optionsAnimations.closed)*scale,50*scale])){
+                            optionsOpen = true;
+                        }
+                    }
+                });
+                arrasAddEventListener('mousemove', (event)=>{
+                    if(!event.originalEvent.isTrusted)return;
+                    let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
+                    const scale = interfaceScale;
+                    glowingTab = -1;
+                    if(optionsOpen){
+                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
+                            glowingTab = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            glowingTab = Math.min(Math.max(glowingTab,0),menuTabs.length-1);
+                        }
                     }
                 });`
             }
