@@ -262,7 +262,7 @@
                 searchMode: 'string',
                 replaceMode: 'string',
                 searchValue: 'e[1]||requestAnimationFrame(t)',
-                replaceValue: 'e[1]||requestAnimationFrame(t);arrasDispatchInternalEvent({type:"animationFrame", callback:t})'
+                replaceValue: 'arrasDispatchInternalEvent({type:"animationFrame", callback:t});e[1]||requestAnimationFrame(t)'
             }
         }, {
             type: 'replace',
