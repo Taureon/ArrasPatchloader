@@ -205,14 +205,14 @@
                         document.body.dispatchEvent(new KeyboardEvent(event.type,{ctrlKey:event.ctrlKey, altKey:event.altKey, shiftKey:event.shiftKey, metaKey:event.metaKey, key:event.key, code:event.code,
                             bubbles:true, cancelable:true, returnValue:false, view:window, target:document.body}));
                     }else if(event instanceof ArrasMouseEvent){
-                        document.getElementById("canvas").querySelector("canvas")?.dispatchEvent(new MouseEvent(event.type,{clientX:event.clientX, clientY:event.clientY, button:event.button,
+                        document.getElementById("canvas").querySelector("canvas").dispatchEvent(new MouseEvent(event.type,{clientX:event.clientX, clientY:event.clientY, button:event.button,
                             deltaX:event.deltaX, deltaY:event.deltaY, deltaMode:event.deltaMode, bubbles:true, cancelable: true, returnValue:true, view: window, target:canvas}));
                     }else if(event instanceof ArrasTouchEvent){
                         let changedTouches = [];
                         for(changedTouch of event.changedTouches){
                             changedTouches.push(new Touch({clientX:changedTouch.clientX, clientY:changedTouch.clientY, identifier:changedTouch.identifier, target:canvas}));
                         }
-                        document.getElementById("canvas").querySelector("canvas")?.dispatchEvent(new TouchEvent(event.type,{changedTouches:changedTouches,
+                        document.getElementById("canvas").querySelector("canvas").dispatchEvent(new TouchEvent(event.type,{changedTouches:changedTouches,
                             bubbles:true, cancelable: true, returnValue:true, view: window, target:canvas}));
                     }
                 }`
