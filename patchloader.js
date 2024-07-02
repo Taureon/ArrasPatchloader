@@ -350,7 +350,7 @@
                             let leftMenuTabEdge = (glowingTab/menuTabs.length*410+70)+optionsAnimations.open,
                                 rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
                             ctx.beginPath();
-                            ctx.rect(leftMenuTabEdge*scale, 20*scale, 410*scale/menuTabs.length, (50+lineWidth/2)*scale+1);
+                            ctx.rect(leftMenuTabEdge*scale, 20*scale, 410*scale/menuTabs.length, 50*scale+1);
                             ctx.fillStyle = '#ffffff26';
                             ctx.fill();
                             ctx.closePath();
