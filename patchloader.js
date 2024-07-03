@@ -419,7 +419,7 @@
                         for(let i=0; i<5; i++){
                             let text = menuTabs[i].name;
                             ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
-                            ctx.lineWidth = 3.75*scale;
+                            ctx.lineWidth = lineWidth*scale;
                             ctx.strokeStyle = toCssColor(bordersColor);
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
