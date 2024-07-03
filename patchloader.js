@@ -315,12 +315,19 @@
                 let interfaceScale = interfaceSize;
                 let menuTabs = [{name:'Options',click:[100,45]},{name:'Theme',click:[250,45]},{name:'Keybinds',click:[360,45]},{name:'Secrets',click:[450,45]},{name:'Patches',click:[450,45]}]
                 let glowingTab = -1;
+                let lastUpdate = undefined;
                 arrasAddEventListener('animationFrame', ()=>{
                     if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         ctx = canvas.getContext("2d");
                         ctx.clearRect(0, 0, canvas.width, canvas.height);
                         const scale = interfaceScale;
+
+                        if(!lastUpdate){
+                            lastUpdate = Date.now();
+                        }
+                        let deltaTime = (Date.now()-lastUpdate)/1000;
+                        lastUpdate = Date.now();
 
                         /*
                             Size of the user interface:
@@ -332,15 +339,25 @@
                         interfaceScale = interfaceSize*Math.max(canvas.width/1920,canvas.height/1080);
 
                         let arrasApproach = (position, destination)=>{
-                            amount = .04;
+                            distance = Math.abs(destination-position);
+                            base   = 5;
+                            amount = (29.2*deltaTime)/(Math.log(distance+base)/Math.log(base));
                             return position+(destination-position)*amount;
                         }
 
                         optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-600);
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
-                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab,selectedTab);
+                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+70));
 
-                        let toCssColor = (color)=>{return 'rgb('+color.join(',')+')';};
+                        let drawRect = (ctx, position, color)=>{
+                            ctx.beginPath();
+                            ctx.rect(position[0], position[1], position[2], position[3]);
+                            ctx.fillStyle = color;
+                            ctx.fill();
+                            ctx.closePath();
+                        };
+
+                        let toCssColor = (color)=>{return 'rgb'+(color.length==4?'a':'')+'('+color.join(',')+')';};
                         let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
 
                         let barrelsColor = [0x63, 0x5f, 0x5f];
@@ -349,20 +366,18 @@
 
                         let lineWidth = 3;
 
-                        ctx.beginPath();
-                        ctx.rect((70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale);
-                        ctx.fillStyle = toCssColor(multiplyColor(barrelsColor,1/1.2));
-                        ctx.fill();
-                        ctx.closePath();
+                        drawRect(ctx, [(70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
+                        drawRect(ctx, [(70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
 
-                        if(glowingTab != -1){
+                        if(clickButtonId >= 1 && clickButtonId <= 6){
+                            let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+70)+optionsAnimations.open,
+                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                        }else if(glowingTab != -1){
                             let leftMenuTabEdge = (glowingTab/menuTabs.length*410+70)+optionsAnimations.open,
                                 rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                            ctx.beginPath();
-                            ctx.rect(leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1);
-                            ctx.fillStyle = '#ffffff26';
-                            ctx.fill();
-                            ctx.closePath();
+                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
                         }
 
                         for(let i=0; i<menuTabs.length; i++){
@@ -379,14 +394,10 @@
                             }
                         }
 
-                        let leftMenuTabEdge = (optionsAnimations.tab/menuTabs.length*410+70)+optionsAnimations.open,
+                        let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
                             rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
 
-                        ctx.beginPath();
-                        ctx.rect(leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1);
-                        ctx.fillStyle = toCssColor(barrelsColor);
-                        ctx.fill();
-                        ctx.closePath();
+                        drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
 
                         ctx.beginPath();
                         ctx.lineWidth = lineWidth*scale;
@@ -418,31 +429,62 @@
                         }
                     }
                 });
+                let clickButtonId = -1;
                 arrasAddEventListener('mousedown', (event)=>{
+                    clickButtonId = -1;
                     if(!event.originalEvent.isTrusted)return;
                     let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                     const scale = interfaceScale;
                     if(optionsOpen){
                         if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
                             event.preventDefault();
-                            selectedTab = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
-                            selectedTab = Math.min(Math.max(selectedTab,0),menuTabs.length-1);
-                            clickLocation = menuTabs[selectedTab].click
-                            mousedown = new ArrasMouseEvent('mousedown',clickLocation[0],clickLocation[1],0,0,0,1);
-                            mouseup = new ArrasMouseEvent('mouseup',clickLocation[0],clickLocation[1],0,0,0,1);
-                            arrasDispatchEvent(mousedown);
-                            arrasDispatchEvent(mouseup);
+                            clickButtonId = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            clickButtonId = Math.min(Math.max(clickButtonId,0),menuTabs.length-1)+1;
                         }
                         if(isCursorInsideRect(event.originalEvent,[(20+optionsAnimations.open)*scale,20*scale,(50+optionsAnimations.open)*scale,50*scale])){
-                            optionsOpen = false;
+                            clickButtonId = 0;
                         }
                     }else{
                         let atSpawnPage = true;
 
                         if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,20*scale,((atSpawnPage?115:15)+optionsAnimations.closed)*scale,50*scale])){
-                            optionsOpen = true;
+                            clickButtonId = 0;
                         }
                     }
+                });
+                arrasAddEventListener('mouseup', (event)=>{
+                    if(!event.originalEvent.isTrusted)return;
+                    let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
+                    const scale = interfaceScale;
+                    if(optionsOpen){
+                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
+                            event.preventDefault();
+                            let thisClickButtonId = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            thisClickButtonId = Math.min(Math.max(thisClickButtonId,0),menuTabs.length-1)+1;
+                            if(clickButtonId == thisClickButtonId){
+                                selectedTab = clickButtonId-1;
+                                clickLocation = menuTabs[selectedTab].click
+                                mousedown = new ArrasMouseEvent('mousedown',clickLocation[0],clickLocation[1],0,0,0,1);
+                                mouseup = new ArrasMouseEvent('mouseup',clickLocation[0],clickLocation[1],0,0,0,1);
+                                arrasDispatchEvent(mousedown);
+                                arrasDispatchEvent(mouseup);
+                            }
+                        }
+                        if(isCursorInsideRect(event.originalEvent,[(20+optionsAnimations.open)*scale,20*scale,(50+optionsAnimations.open)*scale,50*scale])){
+                            if(clickButtonId == 0){
+                                optionsOpen = false;
+                            }
+                        }
+                    }else{
+                        let atSpawnPage = true;
+
+                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,20*scale,((atSpawnPage?115:15)+optionsAnimations.closed)*scale,50*scale])){
+                            if(clickButtonId == 0){
+                                optionsOpen = true;
+                            }
+                        }
+                    }
+                    clickButtonId = -1;
                 });
                 arrasAddEventListener('mousemove', (event)=>{
                     if(!event.originalEvent.isTrusted)return;
