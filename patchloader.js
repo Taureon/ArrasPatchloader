@@ -464,8 +464,8 @@
                             if(clickButtonId == thisClickButtonId){
                                 selectedTab = clickButtonId-1;
                                 clickLocation = menuTabs[selectedTab].click
-                                mousedown = new ArrasMouseEvent('mousedown',clickLocation[0],clickLocation[1],0,0,0,1);
-                                mouseup = new ArrasMouseEvent('mouseup',clickLocation[0],clickLocation[1],0,0,0,1);
+                                mousedown = new ArrasMouseEvent('mousedown',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
+                                mouseup = new ArrasMouseEvent('mouseup',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
                                 arrasDispatchEvent(mousedown);
                                 arrasDispatchEvent(mouseup);
                             }
