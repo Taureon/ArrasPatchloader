@@ -270,6 +270,15 @@
                 all: true,
                 searchMode: 'string',
                 replaceMode: 'string',
+                searchValue: 'e[1]||(document.hidden?requestAnimationFrame(()=>t.port2.postMessage(null)):t.port2.postMessage(null))',
+                replaceValue: 'arrasDispatchInternalEvent({type:"animationFrame", callback:t});e[1]||(document.hidden?requestAnimationFrame(()=>t.port2.postMessage(null)):t.port2.postMessage(null))'
+            }
+        }, {
+            type: 'replace',
+            data: {
+                all: true,
+                searchMode: 'string',
+                replaceMode: 'string',
                 searchValue: '(t=e[t]).id="canvas",document.body.appendChild(t)',
                 replaceValue: '(t=e[t]).id="canvas",document.body.appendChild(t);arrasDispatchInternalEvent({type:"canvas", parent:t, canvas:r})'
             }
