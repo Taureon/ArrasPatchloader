@@ -533,7 +533,7 @@
         }]
     }];
 
-    arras_modules.push(...await getPatchModules());
+    //arras_modules.push(...await getPatchModules());
 
     document.head.innerHTML = '<style>body{background-color:#484848;}</style>';
     document.body.innerHTML = '';
