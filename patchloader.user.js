@@ -16,12 +16,21 @@
     if (!['/mod', '/mod/'].includes(window.location.pathname)) return;
     window.history.pushState({}, null, '/mod/' + window.location.hash);
 
-    let {
-        listValues = this.GM_listValues,
-        getValue = this.GM_getValue,
-        setValue = this.GM_setValue,
-        deleteValue = this.GM_deleteValue
-    } = GM ?? {};
+    let listValues, getValue, setValue, deleteValue;
+
+    try {
+        listValues = GM_listValues;
+        getValue = GM_getValue;
+        setValue = GM_setValue;
+        deleteValue = GM_deleteValue;
+    } catch (err) {
+        try {
+            ({ listValues, getValue, setValue, deleteValue } = GM ?? {});
+        } catch (err) {
+            // TODO: should we default to functions that return empty arrays/objects or should we throw an error?
+            console.log("L");
+        }
+    }
 
     async function getPatchModules () {
         let patches = [];
