@@ -378,7 +378,7 @@
 
                         optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-600);
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
-                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+70));
+                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+75));
 
                         let drawRect = (ctx, position, color)=>{
                             ctx.beginPath();
@@ -397,18 +397,18 @@
 
                         let lineWidth = 3;
 
-                        drawRect(ctx, [(70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
-                        drawRect(ctx, [(70+optionsAnimations.open)*scale, 20*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
+                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
+                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
 
                         if(clickButtonId >= 1 && clickButtonId <= 6){
-                            let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+70)+optionsAnimations.open,
+                            let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
                                 rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
                         }else if(glowingTab != -1){
-                            let leftMenuTabEdge = (glowingTab/menuTabs.length*410+70)+optionsAnimations.open,
+                            let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
                                 rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                            drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
                         }
 
                         for(let i=0; i<menuTabs.length; i++){
@@ -418,9 +418,9 @@
                                 ctx.strokeStyle = toCssColor(bordersColor);
                                 ctx.lineCap = 'round';
                                 ctx.lineJoin = 'round';
-                                const lineX = (70+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
-                                ctx.moveTo(lineX,20*scale);
-                                ctx.lineTo(lineX,70*scale);
+                                const lineX = (75+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
+                                ctx.moveTo(lineX,25*scale);
+                                ctx.lineTo(lineX,75*scale);
                                 ctx.stroke();
                             }
                         }
@@ -428,23 +428,23 @@
                         let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
                             rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
 
-                        drawRect(ctx, [leftMenuTabEdge*scale, 20*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
+                        drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
 
                         ctx.beginPath();
                         ctx.lineWidth = lineWidth*scale;
                         ctx.strokeStyle = toCssColor(bordersColor);
                         ctx.lineCap = 'round';
                         ctx.linejoin = 'round';
-                        ctx.moveTo(leftMenuTabEdge*scale,20*scale);
-                        ctx.lineTo(leftMenuTabEdge*scale,70*scale);
-                        ctx.lineTo((70+optionsAnimations.open)*scale,70*scale);
-                        ctx.lineTo((70+optionsAnimations.open)*scale,20*scale);
-                        ctx.lineTo((480+optionsAnimations.open)*scale,20*scale);
-                        ctx.lineTo((480+optionsAnimations.open)*scale,(70+lineWidth+1)*scale);
+                        ctx.moveTo(leftMenuTabEdge*scale,25*scale);
+                        ctx.lineTo(leftMenuTabEdge*scale,75*scale);
+                        ctx.lineTo((75+optionsAnimations.open)*scale,75*scale);
+                        ctx.lineTo((75+optionsAnimations.open)*scale,25*scale);
+                        ctx.lineTo((485+optionsAnimations.open)*scale,25*scale);
+                        ctx.lineTo((485+optionsAnimations.open)*scale,(75+lineWidth+1)*scale);
                         ctx.stroke();
-                        ctx.moveTo((480+optionsAnimations.open)*scale,70*scale);
-                        ctx.lineTo(rightMenuTabEdge*scale,70*scale);
-                        ctx.lineTo(rightMenuTabEdge*scale,20*scale);
+                        ctx.moveTo((485+optionsAnimations.open)*scale,75*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,75*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,25*scale);
                         ctx.stroke();
 
                         for(let i=0; i<5; i++){
@@ -454,9 +454,9 @@
                             ctx.strokeStyle = toCssColor(bordersColor);
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.strokeText(text, (70+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 45*scale);
+                            ctx.strokeText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
                             ctx.fillStyle = toCssColor(textColor);
-                            ctx.fillText(text, (70+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 45*scale);
+                            ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
                         }
                     }
                 });
@@ -467,18 +467,18 @@
                     let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                     const scale = interfaceScale;
                     if(optionsOpen){
-                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                             event.preventDefault();
-                            clickButtonId = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            clickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                             clickButtonId = Math.min(Math.max(clickButtonId,0),menuTabs.length-1)+1;
                         }
-                        if(isCursorInsideRect(event.originalEvent,[(20+optionsAnimations.open)*scale,20*scale,(50+optionsAnimations.open)*scale,50*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                             clickButtonId = 0;
                         }
                     }else{
                         let atSpawnPage = true;
 
-                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,20*scale,((atSpawnPage?115:15)+optionsAnimations.closed)*scale,50*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
                             clickButtonId = 0;
                         }
                     }
@@ -488,9 +488,9 @@
                     let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                     const scale = interfaceScale;
                     if(optionsOpen){
-                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                             event.preventDefault();
-                            let thisClickButtonId = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                            let thisClickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                             thisClickButtonId = Math.min(Math.max(thisClickButtonId,0),menuTabs.length-1)+1;
                             if(clickButtonId == thisClickButtonId){
                                 selectedTab = clickButtonId-1;
@@ -501,7 +501,7 @@
                                 arrasDispatchEvent(mouseup);
                             }
                         }
-                        if(isCursorInsideRect(event.originalEvent,[(20+optionsAnimations.open)*scale,20*scale,(50+optionsAnimations.open)*scale,50*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                             if(clickButtonId == 0){
                                 optionsOpen = false;
                             }
@@ -509,7 +509,7 @@
                     }else{
                         let atSpawnPage = true;
 
-                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,20*scale,((atSpawnPage?115:15)+optionsAnimations.closed)*scale,50*scale])){
+                        if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
                             if(clickButtonId == 0){
                                 optionsOpen = true;
                             }
@@ -523,8 +523,8 @@
                     const scale = interfaceScale;
                     glowingTab = -1;
                     if(optionsOpen){
-                        if(isCursorInsideRect(event.originalEvent,[(70+optionsAnimations.open)*scale,20*scale,(480+optionsAnimations.open)*scale,70*scale])){
-                            glowingTab = Math.floor((event.originalEvent.clientX-(70+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                        if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
+                            glowingTab = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                             glowingTab = Math.min(Math.max(glowingTab,0),menuTabs.length-1);
                         }
                     }
