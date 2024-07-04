@@ -16,12 +16,12 @@
     if (!['/mod', '/mod/'].includes(window.location.pathname)) return;
     window.history.pushState({}, null, '/mod/' + window.location.hash);
 
-    let {
-        listValues = GM_listValues,
-        getValue = GM_getValue,
-        setValue = GM_setValue,
-        deleteValue = GM_deleteValue
-    } = GM ?? {};
+    let { listValues, getValue, setValue, deleteValue } = GM ?? {};
+
+    listValues ??= GM_listValues;
+    getValue ??= GM_getValue;
+    setValue ??= GM_setValue;
+    deleteValue ??= GM_deleteValue;
 
     async function getPatchModules () {
         let patches = [];
