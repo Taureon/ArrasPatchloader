@@ -332,7 +332,7 @@
                 let selectedTab = 0;
                 let interfaceSize = 1;
                 let interfaceScale = interfaceSize;
-                let menuTabs = [{name:'Options',click:[100,45]},{name:'Theme',click:[250,45]},{name:'Keybinds',click:[360,45]},{name:'Secrets',click:[450,45]},{name:'Patches',click:[450,45]}]
+                let menuTabs = [{name:'Options',click:[100,50]},{name:'Theme',click:[255,50]},{name:'Keybinds',click:[365,50]},{name:'Secrets',click:[455,50]},{name:'Patches',click:[455,50]}]
                 let glowingTab = -1;
                 let lastUpdate = undefined;
                 arrasAddEventListener('animationFrame', ()=>{
