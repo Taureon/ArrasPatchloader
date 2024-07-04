@@ -308,6 +308,9 @@
                         canvas.height = event.height;
                     }
                 });
+                function drawOptions(canvas, options){
+                    ctx = canvas.getContext("2d");
+                }
                 let optionsOpen = false;
                 let optionsAnimations = {closed:0, open:-600, tab: 0};
                 let selectedTab = 0;
@@ -328,6 +331,32 @@
                         }
                         let deltaTime = (Date.now()-lastUpdate)/1000;
                         lastUpdate = Date.now();
+
+                        patchesOptions = [
+                            [{
+                                type: 'title',
+                                data:{
+                                    title: 'Patches'
+                                }
+                            },{
+                            }],[{
+                                type: 'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    text: 'Disable all patches',
+                                    hoverText: undefined,
+                                    columnSpan: 1
+                                }
+                            },{
+                                type: 'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    text: 'Something',
+                                    hoverText: undefined,
+                                    columnSpan: 1
+                                }
+                            }]
+                        ]
 
                         /*
                             Size of the user interface:
