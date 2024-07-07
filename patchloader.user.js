@@ -330,15 +330,44 @@ window.arrasModules = undefined;
                     let toCssColor = (color)=>{return 'rgb'+(color.length==4?'a':'')+'('+color.join(',')+')';};
                     let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
                     let optionsOpen = false;
-                    let optionsAnimations = {closed:0, open:-600, tab: 0};
+                    let optionsAnimations = {closed: 0, open: -600, tab: 75, tabHeight: 0, tabDisplayHeight: 0};
                     let selectedTab = 0;
                     let interfaceSize = 1;
                     let interfaceScale = interfaceSize;
                     let lineWidth = 3;
-                    let menuTabs = [{name:'Options',click:[100,50]},{name:'Theme',click:[255,50]},{name:'Keybinds',click:[365,50]},{name:'Secrets',click:[455,50]},{name:'Patches',click:[455,50]}]
+                    let menuTabs = [{
+                        name:'Options',
+                        click:[100,50],
+                        useExistingTab: true,
+                        height: 18*40+10
+                    },{
+                        name:'Theme',
+                        click:[255,50],
+                        useExistingTab: true,
+                        height: 15*40+10
+                    },{
+                        name:'Keybinds',
+                        click:[365,50],
+                        useExistingTab: true,
+                        height: 16*40+10
+                    },{
+                        name:'Secrets',
+                        click:[455,50],
+                        useExistingTab: true,
+                        height: 9*40+10
+                    },{
+                        name:'Patches',
+                        click:[455,50],
+                        useExistingTab: false,
+                        height: 9*40+10,
+                        options: undefined
+                    }]
                     let glowingTab = -1;
                     let lastUpdate = undefined;
 
+                    function getOptionsHeight(options){
+                        return options.length*40+10;
+                    }
                     function drawOptions(canvas, options, opacity){
                         let ctx = canvas.getContext("2d");
                         const scale = interfaceScale;
@@ -346,15 +375,6 @@ window.arrasModules = undefined;
                         let barrelsColor = [0x63, 0x5f, 0x5f];
                         let bordersColor = [0x13, 0x13, 0x13];
                         let textColor = [0xf2, 0xf2, 0xf2];
-
-                        ctx.beginPath();
-                        ctx.rect((25+optionsAnimations.open)*scale, 75*scale, 460*scale, (options.length*40 + 10)*scale);
-                        ctx.lineWidth = lineWidth*scale;
-                        ctx.fillStyle = toCssColor(barrelsColor.concat([opacity]));
-                        ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.closePath();
 
                         for(let i=0; i<options.length; i++){
                             const row = options[i];
@@ -378,6 +398,8 @@ window.arrasModules = undefined;
 
                                     ctx.beginPath();
                                     ctx.rect((posX +45+optionsAnimations.open)*scale, (i*40+99-19)*scale, 25*scale, 25*scale);
+                                    ctx.lineCap = 'round';
+                                    ctx.lineJoin = 'round';
                                     ctx.lineWidth = lineWidth*scale;
                                     ctx.fillStyle = toCssColor(textColor.concat([opacity]));
                                     ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
@@ -442,12 +464,29 @@ window.arrasModules = undefined;
                                 amount = 0.5*Math.pow(0.8, Math.ceil(Math.log(Math.max(distance,8))/Math.log(4)-1.5));
                                 amount = Math.min(Math.log(4)/Math.log(distance+16)*.97,.4);
                                 amount = 1-Math.pow(1-amount, 30*deltaTime);
-                                return position+(destination-position)*amount;
+                                amount *= (destination-position);
+                                if(Math.abs(amount) > distance){
+                                    return position+distance;
+                                }
+                                return position+amount;
                             }
 
-                            optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-540);
-                            optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
-                            optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+75));
+                            optionsAnimations.open = arrasApproach(optionsAnimations.open, optionsOpen?0:-540);
+                            optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
+                            optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
+                            let animatedTab = (optionsAnimations.tab-75)/410*menuTabs.length;
+                            
+                            let drawRect = (ctx, position, color)=>{
+                                ctx.beginPath();
+                                ctx.rect(position[0], position[1], position[2], position[3]);
+                                ctx.fillStyle = color;
+                                ctx.fill();
+                                ctx.closePath();
+                            };
+
+                            let barrelsColor = [0x63, 0x5f, 0x5f];
+                            let bordersColor = [0x13, 0x13, 0x13];
+                            let textColor = [0xf2, 0xf2, 0xf2];
 
                             let patchesOptions = [
                                 [{
@@ -488,28 +527,47 @@ window.arrasModules = undefined;
                                     }
                                 }]);
                             }
+                            menuTabs[4].options = patchesOptions;
 
-                            let patchesDistance = Math.abs((optionsAnimations.tab-75)/410*menuTabs.length-4);
-                            if(patchesDistance<1.){
-                                drawOptions(canvas, patchesOptions, 1-patchesDistance);
-                            }
+                            let leftTab  = menuTabs[Math.floor(animatedTab)];
+                            let rightTab = menuTabs[Math.ceil (animatedTab)];
+                            let height = leftTab.height * (1-animatedTab%1) + rightTab.height * (  animatedTab%1);
+                            let displayHeight  = Math.max(leftTab .useExistingTab ? 0 : getOptionsHeight(leftTab .options), leftTab .height) * (1-animatedTab%1);
+                                displayHeight += Math.max(rightTab.useExistingTab ? 0 : getOptionsHeight(rightTab.options), rightTab.height) * (  animatedTab%1);
 
-                            let drawRect = (ctx, position, color)=>{
+                            height = optionsAnimations.tabHeight -= (optionsAnimations.tabHeight-height)*.1;
+                            displayHeight = optionsAnimations.tabDisplayHeight -= (optionsAnimations.tabDisplayHeight-displayHeight)*.1;
+
+                            if(!(leftTab.useExistingTab && rightTab.useExistingTab)){
+                                let opacity = 1;
+                                if(menuTabs[Math.round(animatedTab)].useExistingTab){
+                                    opacity = Math.abs(animatedTab-Math.round(animatedTab))*2;
+                                }
+                                drawRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
+                                drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
+
+                                if(!menuTabs[Math.round(animatedTab)].useExistingTab){
+                                    drawOptions(canvas, menuTabs[Math.round(animatedTab)].options, 1-Math.abs(animatedTab-Math.round(animatedTab))*2);
+                                }
+
+                                drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
+
                                 ctx.beginPath();
-                                ctx.rect(position[0], position[1], position[2], position[3]);
-                                ctx.fillStyle = color;
-                                ctx.fill();
-                                ctx.closePath();
-                            };
-
-                            let barrelsColor = [0x63, 0x5f, 0x5f];
-                            let bordersColor = [0x13, 0x13, 0x13];
-                            let textColor = [0xf2, 0xf2, 0xf2];
+                                ctx.lineWidth = lineWidth*scale;
+                                ctx.strokeStyle = toCssColor(bordersColor);
+                                ctx.lineCap = 'round';
+                                ctx.lineJoin = 'round';
+                                ctx.moveTo((25+optionsAnimations.open)*scale,(75-15+height)*scale);
+                                ctx.lineTo((25+optionsAnimations.open)*scale,(75+displayHeight)*scale);
+                                ctx.lineTo((485+optionsAnimations.open)*scale,(75+displayHeight)*scale);
+                                ctx.lineTo((485+optionsAnimations.open)*scale,(75-15+height)*scale);
+                                ctx.stroke();
+                            }
 
                             drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
                             drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
 
-                            if(clickButtonId >= 1 && clickButtonId <= 6){
+                            if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
                                 let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
                                     rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
                                 drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
@@ -556,7 +614,7 @@ window.arrasModules = undefined;
                             ctx.lineTo(rightMenuTabEdge*scale,25*scale);
                             ctx.stroke();
 
-                            for(let i=0; i<5; i++){
+                            for(let i=0; i<menuTabs.length; i++){
                                 let text = menuTabs[i].name;
                                 ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
                                 ctx.lineWidth = lineWidth*scale;
