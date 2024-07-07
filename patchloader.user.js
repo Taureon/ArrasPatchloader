@@ -11,6 +11,8 @@
 // @updateURL https://raw.githubusercontent.com/Taureon/ArrasPatchloader/main/patchloader.meta.js
 // ==/UserScript==
 
+window.arrasModules = undefined;
+
 (async function() {
     'use strict';
     if (!['/mod', '/mod/'].includes(window.location.pathname)) return;
@@ -324,55 +326,104 @@
                         canvas.height = event.height;
                     }
                 });
-                function drawOptions(canvas, options){
-                    ctx = canvas.getContext("2d");
-                }
+                let toCssColor = (color)=>{return 'rgb'+(color.length==4?'a':'')+'('+color.join(',')+')';};
+                let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
                 let optionsOpen = false;
                 let optionsAnimations = {closed:0, open:-600, tab: 0};
                 let selectedTab = 0;
                 let interfaceSize = 1;
                 let interfaceScale = interfaceSize;
+                let lineWidth = 3;
                 let menuTabs = [{name:'Options',click:[100,50]},{name:'Theme',click:[255,50]},{name:'Keybinds',click:[365,50]},{name:'Secrets',click:[455,50]},{name:'Patches',click:[455,50]}]
                 let glowingTab = -1;
                 let lastUpdate = undefined;
+
+                function drawOptions(canvas, options, opacity){
+                    let ctx = canvas.getContext("2d");
+                    const scale = interfaceScale;
+
+                    let barrelsColor = [0x63, 0x5f, 0x5f];
+                    let bordersColor = [0x13, 0x13, 0x13];
+                    let textColor = [0xf2, 0xf2, 0xf2];
+
+                    ctx.beginPath();
+                    ctx.rect((25+optionsAnimations.open)*scale, 75*scale, 460*scale, (options.length*40 + 10)*scale);
+                    ctx.lineWidth = lineWidth*scale;
+                    ctx.fillStyle = toCssColor(barrelsColor.concat([opacity]));
+                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.closePath();
+
+                    for(let i=0; i<options.length; i++){
+                        const row = options[i];
+                        const columns = row.length;
+                        let column = 0;
+                        for(let j=0; j<row.length; j++){
+                            const element = row[j];
+                            if(element.type == 'title'){
+                                const text = element.data.text;
+                                ctx.font = 'bold '+17*scale+'px / '+29*scale+'px Ubuntu';
+                                ctx.lineWidth = (lineWidth+.5)*scale;
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.strokeText(text, (209.5+45+optionsAnimations.open)*scale, (i*40+99)*scale);
+                                ctx.fillStyle = toCssColor(textColor.concat([opacity]));
+                                ctx.fillText(text, (209.5+45+optionsAnimations.open)*scale, (i*40+99)*scale);
+                            }else if(element.type == 'checkbox'){
+                                const text = element.data.text;
+                                const posX = 15*column + (420-15*(columns-1))*(column/columns);
+
+                                ctx.beginPath();
+                                ctx.rect((posX +45+optionsAnimations.open)*scale, (i*40+99-19)*scale, 25*scale, 25*scale);
+                                ctx.lineWidth = lineWidth*scale;
+                                ctx.fillStyle = toCssColor(textColor.concat([opacity]));
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.fill();
+                                ctx.stroke();
+                                ctx.closePath();
+
+                                ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
+                                ctx.lineWidth = lineWidth*scale;
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.textAlign = 'left';
+                                ctx.textBaseline = 'middle';
+                                ctx.strokeText(text, (posX+35 +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                                ctx.fillStyle = toCssColor(textColor.concat([opacity]));
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.fillText(text, (posX+35 +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                            }else if(element.type == 'text'){
+                                const text = element.data.text;
+                                const posX = 15*column + (420-15*(columns-1))*(column/columns);
+
+                                ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
+                                ctx.lineWidth = lineWidth*scale;
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.textAlign = 'left';
+                                ctx.textBaseline = 'middle';
+                                ctx.strokeText(text, (posX +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                                ctx.fillStyle = toCssColor(textColor.concat([opacity]));
+                                ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
+                                ctx.fillText(text, (posX +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                            }
+                            column++;
+                        }
+                    }
+                }
                 arrasAddEventListener('animationFrame', ()=>{
                     if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
-                        ctx = canvas.getContext("2d");
-                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        let ctx = canvas.getContext("2d");
                         const scale = interfaceScale;
+
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                         if(!lastUpdate){
                             lastUpdate = Date.now();
                         }
                         let deltaTime = (Date.now()-lastUpdate)/1000;
                         lastUpdate = Date.now();
-
-                        patchesOptions = [
-                            [{
-                                type: 'title',
-                                data:{
-                                    title: 'Patches'
-                                }
-                            },{
-                            }],[{
-                                type: 'checkbox',
-                                data:{
-                                    callback: (checked)=>{},
-                                    text: 'Disable all patches',
-                                    hoverText: undefined,
-                                    columnSpan: 1
-                                }
-                            },{
-                                type: 'checkbox',
-                                data:{
-                                    callback: (checked)=>{},
-                                    text: 'Something',
-                                    hoverText: undefined,
-                                    columnSpan: 1
-                                }
-                            }]
-                        ]
 
                         /*
                             Size of the user interface:
@@ -394,6 +445,51 @@
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
                         optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+75));
 
+                        let patchesOptions = [
+                            [{
+                                type: 'title',
+                                data:{
+                                    text: 'Patches'
+                                }
+                            },{
+                            }],[{
+                                type: 'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    requiresReload: true,
+                                    text: 'Enable Patches'
+                                }
+                            },{
+                                type: 'text',
+                                data:{
+                                    text: 'Generic text'
+                                }
+                            }]
+                        ];
+                        for(const module of arrasModules){
+                            patchesOptions.push([{type:'title',data:{text: module.name }}]);
+                            patchesOptions.push([{
+                                type:'text',
+                                data:{text:'Author: '+module.author}
+                            }]);
+                            patchesOptions.push([{
+                                type:'text',
+                                data:{text:'Description: '+module.description}
+                            }]);
+                            patchesOptions.push([{
+                                type:'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    text:'Enabled'
+                                }
+                            }]);
+                        }
+
+                        let patchesDistance = Math.abs((optionsAnimations.tab-75)/410*menuTabs.length-4);
+                        if(patchesDistance<1.){
+                            drawOptions(canvas, patchesOptions, 1-patchesDistance);
+                        }
+
                         let drawRect = (ctx, position, color)=>{
                             ctx.beginPath();
                             ctx.rect(position[0], position[1], position[2], position[3]);
@@ -402,14 +498,9 @@
                             ctx.closePath();
                         };
 
-                        let toCssColor = (color)=>{return 'rgb'+(color.length==4?'a':'')+'('+color.join(',')+')';};
-                        let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
-
                         let barrelsColor = [0x63, 0x5f, 0x5f];
                         let bordersColor = [0x13, 0x13, 0x13];
                         let textColor = [0xf2, 0xf2, 0xf2];
-
-                        let lineWidth = 3;
 
                         drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
                         drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
@@ -546,6 +637,7 @@
             }
         }]
     }];
+    window.arrasModules = arras_modules;
 
     //arras_modules.push(...await getPatchModules());
 
