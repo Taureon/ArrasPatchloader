@@ -436,13 +436,16 @@ window.arrasModules = undefined;
                             interfaceScale = interfaceSize*Math.max(canvas.width/1920,canvas.height/1080);
 
                             let arrasApproach = (position, destination)=>{
-                                distance = Math.abs(destination-position);
-                                base   = 5;
-                                amount = (29.2*deltaTime)/(Math.log(distance+base)/Math.log(base));
+                                const distance = Math.abs(destination-position);
+                                let base   = 5;
+                                let amount = distance > 512 ? 0.2048 : (distance > 128 ? 0.256 : (distance > 32 ? 0.32 : (distance > 8 ? 0.4 : 0.5)));
+                                amount = 0.5*Math.pow(0.8, Math.ceil(Math.log(Math.max(distance,8))/Math.log(4)-1.5));
+                                amount = Math.min(Math.log(4)/Math.log(distance+16)*.97,.4);
+                                amount = 1-Math.pow(1-amount, 30*deltaTime);
                                 return position+(destination-position)*amount;
                             }
 
-                            optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-600);
+                            optionsAnimations.open = arrasApproach(optionsAnimations.open,optionsOpen?0:-540);
                             optionsAnimations.closed = arrasApproach(optionsAnimations.closed,optionsOpen?-200:0);
                             optionsAnimations.tab = arrasApproach(optionsAnimations.tab,(selectedTab/menuTabs.length*410+75));
 
