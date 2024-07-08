@@ -637,7 +637,8 @@ window.arrasModules = undefined;
                     });
                     function inputDown(identifier, event){
                         clickButtonIds[identifier] = -1;
-                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
+                        if((!event.originalEvent.isTrusted && identifier == 'mouse') || identifier == 4096)return;
+
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         const scale = interfaceScale*innerWidth/canvas.width;
@@ -667,7 +668,8 @@ window.arrasModules = undefined;
                     arrasAddEventListener('touchstart', (event)=>{for(i of event.originalEvent.changedTouches){inputDown(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
 
                     function inputUp(identifier, event){
-                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
+                        if((!event.originalEvent.isTrusted && identifier == 'mouse') || identifier == 4096)return;
+
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         const scale = interfaceScale*innerWidth/canvas.width;
@@ -679,10 +681,14 @@ window.arrasModules = undefined;
                                 if(clickButtonIds[identifier] == thisClickButtonId){
                                     selectedTab = clickButtonIds[identifier]-1;
                                     let clickLocation = menuTabs[selectedTab].click;
-                                    mousedown = new ArrasMouseEvent('mousedown',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
-                                    mouseup = new ArrasMouseEvent('mouseup',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
-                                    arrasDispatchEvent(mousedown);
-                                    arrasDispatchEvent(mouseup);
+                                    let inputdown = new ArrasTouchEvent('touchstart',[{clientX:clickLocation[0]*scale,clientY:clickLocation[1]*scale,identifier:4096}]);
+                                    let inputup = new ArrasTouchEvent('touchend',[{clientX:clickLocation[0]*scale,clientY:clickLocation[1]*scale,identifier:4096}]);
+                                    if(identifier == 'mouse'){
+                                        inputdown = new ArrasMouseEvent('mousedown',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
+                                        inputup = new ArrasMouseEvent('mouseup',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
+                                    }
+                                    arrasDispatchEvent(inputdown);
+                                    arrasDispatchEvent(inputup);
                                 }
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
@@ -714,7 +720,8 @@ window.arrasModules = undefined;
                     arrasAddEventListener('touchcancel', (event)=>{for(i of event.originalEvent.changedTouches){inputUp(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
 
                     function inputMove(identifier, event){
-                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
+                        if((!event.originalEvent.isTrusted && identifier == 'mouse') || identifier == 4096)return;
+
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         const scale = interfaceScale*innerWidth/canvas.width;
