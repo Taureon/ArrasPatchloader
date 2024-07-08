@@ -628,17 +628,18 @@ window.arrasModules = undefined;
                             ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
                         }
                     });
-                    let clickButtonId = -1;
-                    arrasAddEventListener('mousedown', (event)=>{
-                        clickButtonId = -1;
-                        if(!event.originalEvent.isTrusted)return;
+                    let clickButtonId = {};
+                    function inputDown(identifier, event){
+                        console.log(event.originalEvent);
+                        clickButtonId[identifier] = -1;
+                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         const scale = interfaceScale;
                         if(optionsOpen){
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                                 event.preventDefault();
-                                clickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
-                                clickButtonId = Math.min(Math.max(clickButtonId,0),menuTabs.length-1)+1;
+                                clickButtonId[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                                clickButtonId[identifier] = Math.min(Math.max(clickButtonId[identifier],0),menuTabs.length-1)+1;
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
@@ -646,18 +647,22 @@ window.arrasModules = undefined;
                                 }
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
-                                clickButtonId = 0;
+                                clickButtonId[identifier] = 0;
                             }
                         }else{
                             let atSpawnPage = true;
 
                             if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
-                                clickButtonId = 0;
+                                clickButtonId[identifier] = 0;
                             }
                         }
-                    });
-                    arrasAddEventListener('mouseup', (event)=>{
-                        if(!event.originalEvent.isTrusted)return;
+                    }
+                    arrasAddEventListener('mousedown', (event)=>{inputDown('mouse', event);});
+                    arrasAddEventListener('touchstart', (event)=>{for(i of event.originalEvent.changedTouches){inputDown(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
+
+                    function inputUp(identifier, event){
+                        console.log(event.originalEvent);
+                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         const scale = interfaceScale;
                         if(optionsOpen){
@@ -665,9 +670,9 @@ window.arrasModules = undefined;
                                 event.preventDefault();
                                 let thisClickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 thisClickButtonId = Math.min(Math.max(thisClickButtonId,0),menuTabs.length-1)+1;
-                                if(clickButtonId == thisClickButtonId){
-                                    selectedTab = clickButtonId-1;
-                                    clickLocation = menuTabs[selectedTab].click
+                                if(clickButtonId[identifier] == thisClickButtonId){
+                                    selectedTab = clickButtonId[identifier]-1;
+                                    let clickLocation = menuTabs[selectedTab].click;
                                     mousedown = new ArrasMouseEvent('mousedown',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
                                     mouseup = new ArrasMouseEvent('mouseup',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
                                     arrasDispatchEvent(mousedown);
@@ -680,7 +685,7 @@ window.arrasModules = undefined;
                                 }
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
-                                if(clickButtonId == 0){
+                                if(clickButtonId[identifier] == 0){
                                     optionsOpen = false;
                                 }
                             }
@@ -688,15 +693,19 @@ window.arrasModules = undefined;
                             let atSpawnPage = true;
 
                             if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
-                                if(clickButtonId == 0){
+                                if(clickButtonId[identifier] == 0){
                                     optionsOpen = true;
                                 }
                             }
                         }
-                        clickButtonId = -1;
-                    });
-                    arrasAddEventListener('mousemove', (event)=>{
-                        if(!event.originalEvent.isTrusted)return;
+                        delete clickButtonId[identifier];
+                    }
+                    arrasAddEventListener('mouseup', (event)=>{inputUp('mouse', event);});
+                    arrasAddEventListener('touchend', (event)=>{for(i of event.originalEvent.changedTouches){inputUp(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
+                    arrasAddEventListener('touchcancel', (event)=>{for(i of event.originalEvent.changedTouches){inputUp(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
+
+                    function inputMove(identifier, event){
+                        if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         const scale = interfaceScale;
                         glowingTab = -1;
@@ -711,7 +720,9 @@ window.arrasModules = undefined;
                                 }
                             }
                         }
-                    });
+                    }
+                    arrasAddEventListener('mousemove', (event)=>{inputMove('mouse', event);});
+                    arrasAddEventListener('touchmove', (event)=>{for(i of event.originalEvent.changedTouches){inputMove(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
                 })();`
             }
         }]
