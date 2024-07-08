@@ -435,196 +435,196 @@ window.arrasModules = undefined;
                         }
                     }
                     arrasAddEventListener('animationFrame', ()=>{
-                        if(document.getElementById('patchLoaderCanvas') && document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length > 0){
-                            let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
-                            let ctx = canvas.getContext("2d");
-                            const scale = interfaceScale;
+                        if(!document.getElementById('patchLoaderCanvas') || document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length <= 0){return;}
 
-                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        let ctx = canvas.getContext("2d");
+                        const scale = interfaceScale;
 
-                            if(!lastUpdate){
-                                lastUpdate = Date.now();
-                            }
-                            let deltaTime = (Date.now()-lastUpdate)/1000;
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                        if(!lastUpdate){
                             lastUpdate = Date.now();
+                        }
+                        let deltaTime = (Date.now()-lastUpdate)/1000;
+                        lastUpdate = Date.now();
 
-                            /*
-                                Size of the user interface:
-                                Small:   scale = 0.75;
-                                Regular: scale = 1;
-                                Large:   scale = 1.25;
-                                Mobile:  scale = 1.5;
-                            */
-                            interfaceScale = interfaceSize*Math.max(canvas.width/1920,canvas.height/1080);
+                        /*
+                            Size of the user interface:
+                            Small:   scale = 0.75;
+                            Regular: scale = 1;
+                            Large:   scale = 1.25;
+                            Mobile:  scale = 1.5;
+                        */
+                        interfaceScale = interfaceSize*Math.max(canvas.width/1920,canvas.height/1080);
 
-                            let arrasApproach = (position, destination)=>{
-                                const distance = Math.abs(destination-position);
-                                let base   = 5;
-                                let amount = distance > 512 ? 0.2048 : (distance > 128 ? 0.256 : (distance > 32 ? 0.32 : (distance > 8 ? 0.4 : 0.5)));
-                                amount = 0.5*Math.pow(0.8, Math.ceil(Math.log(Math.max(distance,8))/Math.log(4)-1.5));
-                                amount = Math.min(Math.log(4)/Math.log(distance+16)*.97,.4);
-                                amount = 1-Math.pow(1-amount, 30*deltaTime);
-                                amount *= (destination-position);
-                                if(Math.abs(amount) > distance){
-                                    return position+distance;
+                        let arrasApproach = (position, destination)=>{
+                            const distance = Math.abs(destination-position);
+                            let base   = 5;
+                            let amount = distance > 512 ? 0.2048 : (distance > 128 ? 0.256 : (distance > 32 ? 0.32 : (distance > 8 ? 0.4 : 0.5)));
+                            amount = 0.5*Math.pow(0.8, Math.ceil(Math.log(Math.max(distance,8))/Math.log(4)-1.5));
+                            amount = Math.min(Math.log(4)/Math.log(distance+16)*.97,.4);
+                            amount = 1-Math.pow(1-amount, 30*deltaTime);
+                            amount *= (destination-position);
+                            if(Math.abs(amount) > distance){
+                                return position+distance;
+                            }
+                            return position+amount;
+                        }
+
+                        optionsAnimations.open = arrasApproach(optionsAnimations.open, optionsOpen?0:-540);
+                        optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
+                        optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
+                        let animatedTab = (optionsAnimations.tab-75)/410*menuTabs.length;
+                        
+                        let drawRect = (ctx, position, color)=>{
+                            ctx.beginPath();
+                            ctx.rect(position[0], position[1], position[2], position[3]);
+                            ctx.fillStyle = color;
+                            ctx.fill();
+                            ctx.closePath();
+                        };
+
+                        let barrelsColor = [0x63, 0x5f, 0x5f];
+                        let bordersColor = [0x13, 0x13, 0x13];
+                        let textColor = [0xf2, 0xf2, 0xf2];
+
+                        let patchesOptions = [
+                            [{
+                                type: 'title',
+                                data:{
+                                    text: 'Patches'
                                 }
-                                return position+amount;
-                            }
-
-                            optionsAnimations.open = arrasApproach(optionsAnimations.open, optionsOpen?0:-540);
-                            optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
-                            optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
-                            let animatedTab = (optionsAnimations.tab-75)/410*menuTabs.length;
-                            
-                            let drawRect = (ctx, position, color)=>{
-                                ctx.beginPath();
-                                ctx.rect(position[0], position[1], position[2], position[3]);
-                                ctx.fillStyle = color;
-                                ctx.fill();
-                                ctx.closePath();
-                            };
-
-                            let barrelsColor = [0x63, 0x5f, 0x5f];
-                            let bordersColor = [0x13, 0x13, 0x13];
-                            let textColor = [0xf2, 0xf2, 0xf2];
-
-                            let patchesOptions = [
-                                [{
-                                    type: 'title',
-                                    data:{
-                                        text: 'Patches'
-                                    }
-                                },{
-                                }],[{
-                                    type: 'checkbox',
-                                    data:{
-                                        callback: (checked)=>{},
-                                        requiresReload: true,
-                                        text: 'Enable Patches'
-                                    }
-                                },{
-                                    type: 'text',
-                                    data:{
-                                        text: 'Generic text'
-                                    }
-                                }]
-                            ];
-                            for(const module of arrasModules){
-                                patchesOptions.push([{type:'title',data:{text: module.name }}]);
-                                patchesOptions.push([{
-                                    type:'text',
-                                    data:{text:'Author: '+module.author}
-                                }]);
-                                patchesOptions.push([{
-                                    type:'text',
-                                    data:{text:'Description: '+module.description}
-                                }]);
-                                patchesOptions.push([{
-                                    type:'checkbox',
-                                    data:{
-                                        callback: (checked)=>{},
-                                        text:'Enabled'
-                                    }
-                                }]);
-                            }
-                            menuTabs[4].options = patchesOptions;
-
-                            let leftTab  = menuTabs[Math.floor(animatedTab)];
-                            let rightTab = menuTabs[Math.ceil (animatedTab)];
-                            let height = leftTab.height * (1-animatedTab%1) + rightTab.height * (  animatedTab%1);
-                            let displayHeight  = Math.max(leftTab .useExistingTab ? 0 : getOptionsHeight(leftTab .options), leftTab .height) * (1-animatedTab%1);
-                                displayHeight += Math.max(rightTab.useExistingTab ? 0 : getOptionsHeight(rightTab.options), rightTab.height) * (  animatedTab%1);
-
-                            height = optionsAnimations.tabHeight -= (optionsAnimations.tabHeight-height)*.1;
-                            displayHeight = optionsAnimations.tabDisplayHeight -= (optionsAnimations.tabDisplayHeight-displayHeight)*.1;
-
-                            if(!(leftTab.useExistingTab && rightTab.useExistingTab)){
-                                let opacity = 1;
-                                if(menuTabs[Math.round(animatedTab)].useExistingTab){
-                                    opacity = Math.abs(animatedTab-Math.round(animatedTab))*2;
+                            },{
+                            }],[{
+                                type: 'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    requiresReload: true,
+                                    text: 'Enable Patches'
                                 }
-                                drawRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
-                                drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
-
-                                if(!menuTabs[Math.round(animatedTab)].useExistingTab){
-                                    drawOptions(canvas, menuTabs[Math.round(animatedTab)].options, 1-Math.abs(animatedTab-Math.round(animatedTab))*2);
+                            },{
+                                type: 'text',
+                                data:{
+                                    text: 'Generic text'
                                 }
-
-                                drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
-
-                                ctx.beginPath();
-                                ctx.lineWidth = lineWidth*scale;
-                                ctx.strokeStyle = toCssColor(bordersColor);
-                                ctx.lineCap = 'round';
-                                ctx.lineJoin = 'round';
-                                ctx.moveTo((25+optionsAnimations.open)*scale,(75-15+height)*scale);
-                                ctx.lineTo((25+optionsAnimations.open)*scale,(75+displayHeight)*scale);
-                                ctx.lineTo((485+optionsAnimations.open)*scale,(75+displayHeight)*scale);
-                                ctx.lineTo((485+optionsAnimations.open)*scale,(75-15+height)*scale);
-                                ctx.stroke();
-                            }
-
-                            drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
-                            drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
-
-                            if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
-                                let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
-                                    rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
-                            }else if(glowingTab != -1){
-                                let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
-                                    rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
-                            }
-
-                            for(let i=0; i<menuTabs.length; i++){
-                                if(i != menuTabs.length-1){
-                                    ctx.beginPath();
-                                    ctx.lineWidth = lineWidth*scale;
-                                    ctx.strokeStyle = toCssColor(bordersColor);
-                                    ctx.lineCap = 'round';
-                                    ctx.lineJoin = 'round';
-                                    const lineX = (75+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
-                                    ctx.moveTo(lineX,25*scale);
-                                    ctx.lineTo(lineX,75*scale);
-                                    ctx.stroke();
+                            }]
+                        ];
+                        for(const module of arrasModules){
+                            patchesOptions.push([{type:'title',data:{text: module.name }}]);
+                            patchesOptions.push([{
+                                type:'text',
+                                data:{text:'Author: '+module.author}
+                            }]);
+                            patchesOptions.push([{
+                                type:'text',
+                                data:{text:'Description: '+module.description}
+                            }]);
+                            patchesOptions.push([{
+                                type:'checkbox',
+                                data:{
+                                    callback: (checked)=>{},
+                                    text:'Enabled'
                                 }
+                            }]);
+                        }
+                        menuTabs[4].options = patchesOptions;
+
+                        let leftTab  = menuTabs[Math.floor(animatedTab)];
+                        let rightTab = menuTabs[Math.ceil (animatedTab)];
+                        let height = leftTab.height * (1-animatedTab%1) + rightTab.height * (  animatedTab%1);
+                        let displayHeight  = Math.max(leftTab .useExistingTab ? 0 : getOptionsHeight(leftTab .options), leftTab .height) * (1-animatedTab%1);
+                            displayHeight += Math.max(rightTab.useExistingTab ? 0 : getOptionsHeight(rightTab.options), rightTab.height) * (  animatedTab%1);
+
+                        height = optionsAnimations.tabHeight -= (optionsAnimations.tabHeight-height)*.1;
+                        displayHeight = optionsAnimations.tabDisplayHeight -= (optionsAnimations.tabDisplayHeight-displayHeight)*.1;
+
+                        if(!(leftTab.useExistingTab && rightTab.useExistingTab)){
+                            let opacity = 1;
+                            if(menuTabs[Math.round(animatedTab)].useExistingTab){
+                                opacity = Math.abs(animatedTab-Math.round(animatedTab))*2;
+                            }
+                            drawRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
+                            drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
+
+                            if(!menuTabs[Math.round(animatedTab)].useExistingTab){
+                                drawOptions(canvas, menuTabs[Math.round(animatedTab)].options, 1-Math.abs(animatedTab-Math.round(animatedTab))*2);
                             }
 
-                            let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
-                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-
-                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
+                            drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
 
                             ctx.beginPath();
                             ctx.lineWidth = lineWidth*scale;
                             ctx.strokeStyle = toCssColor(bordersColor);
                             ctx.lineCap = 'round';
-                            ctx.linejoin = 'round';
-                            ctx.moveTo(leftMenuTabEdge*scale,25*scale);
-                            ctx.lineTo(leftMenuTabEdge*scale,75*scale);
-                            ctx.lineTo((75+optionsAnimations.open)*scale,75*scale);
-                            ctx.lineTo((75+optionsAnimations.open)*scale,25*scale);
-                            ctx.lineTo((485+optionsAnimations.open)*scale,25*scale);
-                            ctx.lineTo((485+optionsAnimations.open)*scale,(75+lineWidth+1)*scale);
+                            ctx.lineJoin = 'round';
+                            ctx.moveTo((25+optionsAnimations.open)*scale,(75-15+height)*scale);
+                            ctx.lineTo((25+optionsAnimations.open)*scale,(75+displayHeight)*scale);
+                            ctx.lineTo((485+optionsAnimations.open)*scale,(75+displayHeight)*scale);
+                            ctx.lineTo((485+optionsAnimations.open)*scale,(75-15+height)*scale);
                             ctx.stroke();
-                            ctx.moveTo((485+optionsAnimations.open)*scale,75*scale);
-                            ctx.lineTo(rightMenuTabEdge*scale,75*scale);
-                            ctx.lineTo(rightMenuTabEdge*scale,25*scale);
-                            ctx.stroke();
+                        }
 
-                            for(let i=0; i<menuTabs.length; i++){
-                                let text = menuTabs[i].name;
-                                ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
+                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
+                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
+
+                        if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
+                            let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
+                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                        }else if(glowingTab != -1){
+                            let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
+                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                        }
+
+                        for(let i=0; i<menuTabs.length; i++){
+                            if(i != menuTabs.length-1){
+                                ctx.beginPath();
                                 ctx.lineWidth = lineWidth*scale;
                                 ctx.strokeStyle = toCssColor(bordersColor);
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.strokeText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
-                                ctx.fillStyle = toCssColor(textColor);
-                                ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
+                                ctx.lineCap = 'round';
+                                ctx.lineJoin = 'round';
+                                const lineX = (75+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
+                                ctx.moveTo(lineX,25*scale);
+                                ctx.lineTo(lineX,75*scale);
+                                ctx.stroke();
                             }
+                        }
+
+                        let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
+                            rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+
+                        drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
+
+                        ctx.beginPath();
+                        ctx.lineWidth = lineWidth*scale;
+                        ctx.strokeStyle = toCssColor(bordersColor);
+                        ctx.lineCap = 'round';
+                        ctx.linejoin = 'round';
+                        ctx.moveTo(leftMenuTabEdge*scale,25*scale);
+                        ctx.lineTo(leftMenuTabEdge*scale,75*scale);
+                        ctx.lineTo((75+optionsAnimations.open)*scale,75*scale);
+                        ctx.lineTo((75+optionsAnimations.open)*scale,25*scale);
+                        ctx.lineTo((485+optionsAnimations.open)*scale,25*scale);
+                        ctx.lineTo((485+optionsAnimations.open)*scale,(75+lineWidth+1)*scale);
+                        ctx.stroke();
+                        ctx.moveTo((485+optionsAnimations.open)*scale,75*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,75*scale);
+                        ctx.lineTo(rightMenuTabEdge*scale,25*scale);
+                        ctx.stroke();
+
+                        for(let i=0; i<menuTabs.length; i++){
+                            let text = menuTabs[i].name;
+                            ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
+                            ctx.lineWidth = lineWidth*scale;
+                            ctx.strokeStyle = toCssColor(bordersColor);
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.strokeText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
+                            ctx.fillStyle = toCssColor(textColor);
+                            ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
                         }
                     });
                     let clickButtonId = -1;
