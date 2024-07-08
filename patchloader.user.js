@@ -332,6 +332,7 @@ window.arrasModules = undefined;
                     let optionsOpen = false;
                     let optionsAnimations = {closed: 0, open: -600, tab: 75, tabHeight: 0, tabDisplayHeight: 0};
                     let selectedTab = 0;
+                    let displayTab = 0;
                     let interfaceSize = 1;
                     let interfaceScale = interfaceSize;
                     let lineWidth = 3;
@@ -475,7 +476,7 @@ window.arrasModules = undefined;
                         optionsAnimations.open = arrasApproach(optionsAnimations.open, optionsOpen?0:-540);
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
                         optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
-                        let animatedTab = (optionsAnimations.tab-75)/410*menuTabs.length;
+                        displayTab = (optionsAnimations.tab-75)/410*menuTabs.length;
                         
                         let drawRect = (ctx, position, color)=>{
                             ctx.beginPath();
@@ -530,25 +531,25 @@ window.arrasModules = undefined;
                         }
                         menuTabs[4].options = patchesOptions;
 
-                        let leftTab  = menuTabs[Math.floor(animatedTab)];
-                        let rightTab = menuTabs[Math.ceil (animatedTab)];
-                        let height = leftTab.height * (1-animatedTab%1) + rightTab.height * (  animatedTab%1);
-                        let displayHeight  = Math.max(leftTab .useExistingTab ? 0 : getOptionsHeight(leftTab .options), leftTab .height) * (1-animatedTab%1);
-                            displayHeight += Math.max(rightTab.useExistingTab ? 0 : getOptionsHeight(rightTab.options), rightTab.height) * (  animatedTab%1);
+                        let leftTab  = menuTabs[Math.floor(displayTab)];
+                        let rightTab = menuTabs[Math.ceil (displayTab)];
+                        let height = leftTab.height * (1-displayTab%1) + rightTab.height * (  displayTab%1);
+                        let displayHeight  = Math.max(leftTab .useExistingTab ? 0 : getOptionsHeight(leftTab .options), leftTab .height) * (1-displayTab%1);
+                            displayHeight += Math.max(rightTab.useExistingTab ? 0 : getOptionsHeight(rightTab.options), rightTab.height) * (  displayTab%1);
 
                         height = optionsAnimations.tabHeight -= (optionsAnimations.tabHeight-height)*.1;
                         displayHeight = optionsAnimations.tabDisplayHeight -= (optionsAnimations.tabDisplayHeight-displayHeight)*.1;
 
                         if(!(leftTab.useExistingTab && rightTab.useExistingTab)){
                             let opacity = 1;
-                            if(menuTabs[Math.round(animatedTab)].useExistingTab){
-                                opacity = Math.abs(animatedTab-Math.round(animatedTab))*2;
+                            if(menuTabs[Math.round(displayTab)].useExistingTab){
+                                opacity = Math.abs(displayTab-Math.round(displayTab))*2;
                             }
                             drawRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
                             drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
 
-                            if(!menuTabs[Math.round(animatedTab)].useExistingTab){
-                                drawOptions(canvas, menuTabs[Math.round(animatedTab)].options, 1-Math.abs(animatedTab-Math.round(animatedTab))*2);
+                            if(!menuTabs[Math.round(displayTab)].useExistingTab){
+                                drawOptions(canvas, menuTabs[Math.round(displayTab)].options, 1-Math.abs(displayTab-Math.round(displayTab))*2);
                             }
 
                             drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
@@ -639,6 +640,11 @@ window.arrasModules = undefined;
                                 clickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 clickButtonId = Math.min(Math.max(clickButtonId,0),menuTabs.length-1)+1;
                             }
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                                if(!menuTabs[Math.round(displayTab)].useExistingTab){
+                                    event.preventDefault();
+                                }
+                            }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                                 clickButtonId = 0;
                             }
@@ -668,6 +674,11 @@ window.arrasModules = undefined;
                                     arrasDispatchEvent(mouseup);
                                 }
                             }
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                                if(!menuTabs[Math.round(displayTab)].useExistingTab){
+                                    event.preventDefault();
+                                }
+                            }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                                 if(clickButtonId == 0){
                                     optionsOpen = false;
@@ -693,6 +704,11 @@ window.arrasModules = undefined;
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                                 glowingTab = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 glowingTab = Math.min(Math.max(glowingTab,0),menuTabs.length-1);
+                            }
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                                if(!menuTabs[Math.round(displayTab)].useExistingTab){
+                                    event.preventDefault();
+                                }
                             }
                         }
                     });
