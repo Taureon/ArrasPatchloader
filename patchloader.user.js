@@ -363,7 +363,8 @@ window.arrasModules = undefined;
                         height: 9*40+10,
                         options: undefined
                     }]
-                    let glowingTab = -1;
+                    let glowingTabs = {};
+                    let clickButtonIds = {};
                     let lastUpdate = undefined;
 
                     function getOptionsHeight(options){
@@ -569,15 +570,21 @@ window.arrasModules = undefined;
                         drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
                         drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
 
-                        if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
-                            let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
-                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
-                        }else if(glowingTab != -1){
-                            let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
-                                rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                            drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                        for(glowingTab of Object.values(glowingTabs)){
+                            if(glowingTab != -1){
+                                let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
+                                    rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                            }
+                        }
+                        for(clickButtonId of Object.values(clickButtonIds)){
+                            if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
+                                let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
+                                    rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
+                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                            }
                         }
 
                         for(let i=0; i<menuTabs.length; i++){
@@ -628,18 +635,17 @@ window.arrasModules = undefined;
                             ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
                         }
                     });
-                    let clickButtonId = {};
                     function inputDown(identifier, event){
-                        console.log(event.originalEvent);
-                        clickButtonId[identifier] = -1;
+                        clickButtonIds[identifier] = -1;
                         if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
-                        const scale = interfaceScale;
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        const scale = interfaceScale*innerWidth/canvas.width;
                         if(optionsOpen){
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                                 event.preventDefault();
-                                clickButtonId[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
-                                clickButtonId[identifier] = Math.min(Math.max(clickButtonId[identifier],0),menuTabs.length-1)+1;
+                                clickButtonIds[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                                clickButtonIds[identifier] = Math.min(Math.max(clickButtonIds[identifier],0),menuTabs.length-1)+1;
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
@@ -647,13 +653,13 @@ window.arrasModules = undefined;
                                 }
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
-                                clickButtonId[identifier] = 0;
+                                clickButtonIds[identifier] = 0;
                             }
                         }else{
                             let atSpawnPage = true;
 
                             if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
-                                clickButtonId[identifier] = 0;
+                                clickButtonIds[identifier] = 0;
                             }
                         }
                     }
@@ -661,17 +667,17 @@ window.arrasModules = undefined;
                     arrasAddEventListener('touchstart', (event)=>{for(i of event.originalEvent.changedTouches){inputDown(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
 
                     function inputUp(identifier, event){
-                        console.log(event.originalEvent);
                         if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
-                        const scale = interfaceScale;
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        const scale = interfaceScale*innerWidth/canvas.width;
                         if(optionsOpen){
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                                 event.preventDefault();
                                 let thisClickButtonId = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 thisClickButtonId = Math.min(Math.max(thisClickButtonId,0),menuTabs.length-1)+1;
-                                if(clickButtonId[identifier] == thisClickButtonId){
-                                    selectedTab = clickButtonId[identifier]-1;
+                                if(clickButtonIds[identifier] == thisClickButtonId){
+                                    selectedTab = clickButtonIds[identifier]-1;
                                     let clickLocation = menuTabs[selectedTab].click;
                                     mousedown = new ArrasMouseEvent('mousedown',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
                                     mouseup = new ArrasMouseEvent('mouseup',clickLocation[0]*scale,clickLocation[1]*scale,0,0,0,1);
@@ -685,7 +691,7 @@ window.arrasModules = undefined;
                                 }
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
-                                if(clickButtonId[identifier] == 0){
+                                if(clickButtonIds[identifier] == 0){
                                     optionsOpen = false;
                                 }
                             }
@@ -693,12 +699,15 @@ window.arrasModules = undefined;
                             let atSpawnPage = true;
 
                             if(isCursorInsideRect(event.originalEvent,[(optionsAnimations.closed)*scale,25*scale,((atSpawnPage?120:20)+optionsAnimations.closed)*scale,55*scale])){
-                                if(clickButtonId[identifier] == 0){
+                                if(clickButtonIds[identifier] == 0){
                                     optionsOpen = true;
                                 }
                             }
                         }
-                        delete clickButtonId[identifier];
+                        delete clickButtonIds[identifier];
+                        if(glowingTabs[identifier]){
+                            delete glowingTabs[identifier];
+                        }
                     }
                     arrasAddEventListener('mouseup', (event)=>{inputUp('mouse', event);});
                     arrasAddEventListener('touchend', (event)=>{for(i of event.originalEvent.changedTouches){inputUp(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
@@ -707,12 +716,13 @@ window.arrasModules = undefined;
                     function inputMove(identifier, event){
                         if(!event.originalEvent.isTrusted && identifier == 'mouse')return;
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
-                        const scale = interfaceScale;
-                        glowingTab = -1;
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        const scale = interfaceScale*innerWidth/canvas.width;
+                        glowingTabs[identifier] = -1;
                         if(optionsOpen){
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
-                                glowingTab = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
-                                glowingTab = Math.min(Math.max(glowingTab,0),menuTabs.length-1);
+                                glowingTabs[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
+                                glowingTabs[identifier] = Math.min(Math.max(glowingTabs[identifier],0),menuTabs.length-1);
                             }
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
