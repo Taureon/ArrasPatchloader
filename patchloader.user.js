@@ -530,7 +530,7 @@ window.arrasModules = undefined;
                                 columnSpan: 1
                             }
                         }]]
-                    }]
+                    }];
                     let glowingTabs = {};
                     let clickButtonIds = {};
                     let lastUpdate = undefined;
@@ -585,12 +585,16 @@ window.arrasModules = undefined;
 
                         for(let i=0; i<options.length; i++){
                             const row = options[i];
-                            const columns = row.length;
                             let column = 0;
+                            let columns = 0;
+                            for(let j=0; j<row.length; j++){
+                                columns += (row[j].data??{}).columnSpan??1;
+                            }
                             for(let j=0; j<row.length; j++){
                                 const element = row[j];
                                 const posX = 15*column + (420-15*(columns-1))*(column/columns);
-                                const width = (420-15*(columns-1))/columns;
+                                const columnSpan = (element.data??{}).columnSpan??1;
+                                const width = 15*(columnSpan-1) + (420-15*(columns-1))*(columnSpan/columns);
 
                                 if(element.type == 'title'){
                                     const text = element.data.text;
@@ -635,11 +639,22 @@ window.arrasModules = undefined;
                                     drawText(ctx, text, [(posX+160 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'textInput'){
+                                    const value = element.data.value;
+                                    const placeHolder = element.data.placeHolder??'';
+
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
                                         toCssColor(colors.text.concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
+
+                                    if(value != ''){
+                                        fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-5.5)*scale], 12.5, 'left',
+                                            toCssColor(colors.borders.concat([opacity])));
+                                    }else{
+                                        fillText(ctx, placeHolder, [(posX+12 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 12.5, 'left',
+                                            toCssColor(colors.borders.concat([opacity*0x65/0xff])));
+                                    }
                                 }else if(element.type == 'dropdown'){
                                     const value = element.data.value;
 
@@ -700,7 +715,7 @@ window.arrasModules = undefined;
                                     drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }
-                                column++;
+                                column += columnSpan;
                             }
                         }
                     }
@@ -788,27 +803,32 @@ window.arrasModules = undefined;
                                     callback: (checked)=>{},
                                     requiresReload: true,
                                     text: 'Type the url here...',
-                                    value: ''
+                                    value: '',
+                                    columnSpan: 3
                                 }
                             },{
                                 type: 'button',
                                 data:{
-                                    text: 'Add from url'
+                                    text: 'Add from url',
+                                    columnSpan: 1
                                 }
                             }],[{
                                 type: 'text',
                                 data:{
-                                    text: 'No file chosen'
+                                    text: 'No file chosen',
+                                    columnSpan: 2
                                 }
                             },{
                                 type: 'button',
                                 data:{
-                                    text: 'Choose file'
+                                    text: 'Choose file',
+                                    columnSpan: 1
                                 }
                             },{
                                 type: 'button',
                                 data:{
-                                    text: 'Add from chosen file'
+                                    text: 'Add from file',
+                                    columnSpan: 1
                                 }
                             }]
                         ];
