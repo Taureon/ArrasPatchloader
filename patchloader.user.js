@@ -362,10 +362,172 @@ window.arrasModules = undefined;
                         useExistingTab: false,
                         height: 9*40+10,
                         options: undefined
+                    },{
+                        name:'Elements',
+                        click:[455,50],
+                        useExistingTab: false,
+                        height: 9*40+10,
+                        options: [[{
+                            type:'title',
+                            data:{
+                                text:'Text'
+                            }
+                        }],[{
+                            type:'text',
+                            data:{
+                                text:'Text',
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'checkbox',
+                            data:{
+                                text: 'Text',
+                                callback: (checked) => {},
+                                value: false,
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'slider',
+                            data:{
+                                text: 'Text',
+                                callback: (value) => {},
+                                value: 0,
+                                minimumValue: 0,
+                                maximumValue: 1,
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'textInput',
+                            data:{
+                                callback: (text) => {},
+                                value: 'Text',
+                                numbersOnly: false,
+                                placeholder: 'Type',
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                callback: (option) => {},
+                                value: 'Option',
+                                options: {
+                                    0: 'Option',
+                                    1: 'Other option'
+                                },
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'button',
+                            data:{
+                                text: 'Text',
+                                callback: () => {},
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'empty',
+                            data:{
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'keybind',
+                            data:{
+                                text: 'Text',
+                                callback: (key) => {},
+                                value: 'A',
+                                allowsMultipleKeys: false,
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'color',
+                            data:{
+                                text: 'Text',
+                                callback: (color) => {},
+                                value: [0, 0, 0],
+                                hasOpacity: false,
+
+                                requiresReload: false,
+                                isDisabled: false,
+
+                                hoverText: 'Text',
+                                columnSpan: 1
+                            }
+                        }]]
                     }]
                     let glowingTabs = {};
                     let clickButtonIds = {};
                     let lastUpdate = undefined;
+
+                    const fillRect = (ctx, position, color)=>{
+                        ctx.beginPath();
+                        ctx.rect(position[0], position[1], position[2], position[3]);
+                        ctx.fillStyle = color;
+                        ctx.fill();
+                        ctx.closePath();
+                    };
+                    const strokeRect = (ctx, position, color)=>{
+                        ctx.beginPath();
+                        ctx.rect(position[0], position[1], position[2], position[3]);
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+                        ctx.lineWidth = lineWidth*interfaceScale;
+                        ctx.strokeStyle = color;
+                        ctx.stroke();
+                        ctx.closePath();
+                    };
+                    const drawRect = (ctx, position, fillColor, strokeColor)=>{
+                        fillRect(ctx, position, fillColor);
+                        strokeRect(ctx, position, strokeColor);
+                    };
+                    const fillText = (ctx, text, position, fontSize, textAlign, color)=>{
+                        ctx.font = 'bold '+fontSize*interfaceScale+'px / '+fontSize*(25.6/15)*interfaceScale+'px Ubuntu';
+                        ctx.textAlign = textAlign;
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = color;
+                        ctx.fillText(text, position[0], position[1]);
+                    }
+                    const strokeText = (ctx, text, position, fontSize, strokeSize, textAlign, color)=>{
+                        ctx.font = 'bold '+fontSize*interfaceScale+'px / '+fontSize*(25.6/15)*interfaceScale+'px Ubuntu';
+                        ctx.lineWidth = strokeSize*interfaceScale;
+                        ctx.textAlign = textAlign;
+                        ctx.textBaseline = 'middle';
+                        ctx.strokeStyle = color;
+                        ctx.strokeText(text, position[0], position[1]);
+                    }
+                    const drawText = (ctx, text, position, fontSize, strokeSize, textAlign, fillColor, strokeColor)=>{
+                        strokeText(ctx, text, position, fontSize, strokeSize, textAlign, strokeColor);
+                        fillText(ctx, text, position, fontSize, textAlign, fillColor);
+                    }
 
                     function getOptionsHeight(options){
                         return options.length*40+10;
@@ -374,6 +536,7 @@ window.arrasModules = undefined;
                         let ctx = canvas.getContext("2d");
                         const scale = interfaceScale;
 
+                        let greenColor = [0x8a, 0xbc, 0x3f];
                         let barrelsColor = [0x63, 0x5f, 0x5f];
                         let bordersColor = [0x13, 0x13, 0x13];
                         let textColor = [0xf2, 0xf2, 0xf2];
@@ -384,53 +547,116 @@ window.arrasModules = undefined;
                             let column = 0;
                             for(let j=0; j<row.length; j++){
                                 const element = row[j];
+                                const posX = 15*column + (420-15*(columns-1))*(column/columns);
+                                const width = (420-15*(columns-1))/columns;
+
                                 if(element.type == 'title'){
                                     const text = element.data.text;
-                                    ctx.font = 'bold '+17*scale+'px / '+29*scale+'px Ubuntu';
-                                    ctx.lineWidth = (lineWidth+.5)*scale;
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.textAlign = 'center';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.strokeText(text, (209.5+45+optionsAnimations.open)*scale, (i*40+99)*scale);
-                                    ctx.fillStyle = toCssColor(textColor.concat([opacity]));
-                                    ctx.fillText(text, (209.5+45+optionsAnimations.open)*scale, (i*40+99)*scale);
-                                }else if(element.type == 'checkbox'){
-                                    const text = element.data.text;
-                                    const posX = 15*column + (420-15*(columns-1))*(column/columns);
-
-                                    ctx.beginPath();
-                                    ctx.rect((posX +45+optionsAnimations.open)*scale, (i*40+99-19)*scale, 25*scale, 25*scale);
-                                    ctx.lineCap = 'round';
-                                    ctx.lineJoin = 'round';
-                                    ctx.lineWidth = lineWidth*scale;
-                                    ctx.fillStyle = toCssColor(textColor.concat([opacity]));
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.fill();
-                                    ctx.stroke();
-                                    ctx.closePath();
-
-                                    ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
-                                    ctx.lineWidth = lineWidth*scale;
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.textAlign = 'left';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.strokeText(text, (posX+35 +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
-                                    ctx.fillStyle = toCssColor(textColor.concat([opacity]));
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.fillText(text, (posX+35 +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                                    drawText(ctx, text, [(209.5+45+optionsAnimations.open)*scale, (i*40+100-1)*scale], 17, lineWidth+.5, 'center',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
                                 }else if(element.type == 'text'){
                                     const text = element.data.text;
-                                    const posX = 15*column + (420-15*(columns-1))*(column/columns);
+                                    drawText(ctx, text, [(posX +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'checkbox'){
+                                    const text = element.data.text;
 
-                                    ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
-                                    ctx.lineWidth = lineWidth*scale;
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.textAlign = 'left';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.strokeText(text, (posX +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
-                                    ctx.fillStyle = toCssColor(textColor.concat([opacity]));
-                                    ctx.strokeStyle = toCssColor(bordersColor.concat([opacity]));
-                                    ctx.fillText(text, (posX +45+optionsAnimations.open)*scale, (i*40+99-5.5)*scale);
+                                    drawRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        toCssColor(textColor.concat([opacity])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'slider'){
+                                    const text = element.data.text;
+                                    const value = element.data.value;
+                                    const minimumValue = element.data.minimumValue;
+                                    const maximumValue = element.data.maximumValue;
+
+                                    const sliderPercentage = (value-minimumValue)/(maximumValue-minimumValue);
+
+                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(textColor.concat([opacity])));
+                                    fillRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, sliderPercentage*137.5*scale, 20*scale],
+                                        toCssColor(greenColor.concat([opacity*0xb2/0xff]))
+                                    );
+                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(bordersColor.concat([opacity])));
+
+                                    drawRect(ctx,
+                                        [(posX+sliderPercentage*137.5 +45+optionsAnimations.open)*scale, (i*40+80)*scale, 12.5*scale, 25*scale],
+                                        toCssColor(greenColor.concat([opacity])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+
+                                    drawText(ctx, text, [(posX+160 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'textInput'){
+                                    drawRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
+                                        toCssColor(textColor.concat([opacity])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+                                }else if(element.type == 'dropdown'){
+                                    const value = element.data.value;
+
+                                    drawRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
+                                        toCssColor(textColor.concat([opacity])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+
+                                    ctx.beginPath();
+                                    ctx.lineWidth = 0;
+                                    ctx.fillStyle = toCssColor(bordersColor);
+                                    ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
+                                    ctx.lineTo((posX+width-15 +45+optionsAnimations.open)*scale, (i*40+90+5.625)*scale);
+                                    ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
+                                    ctx.fill();
+                                    ctx.closePath();
+                                    
+                                    drawText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'button'){
+                                    const text = element.data.text;
+
+                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(barrelsColor.concat([opacity])));
+                                    fillRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+15)*scale, width*scale, 10*scale],
+                                        toCssColor(bordersColor.concat([opacity*0x32/0xff]))
+                                    );
+                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(bordersColor.concat([opacity])));
+
+                                    drawText(ctx, text, [(posX+width/2 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'center',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'keybind'){
+                                    const text = element.data.text;
+                                    const value = element.data.value;
+
+                                    drawRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        toCssColor(textColor.concat([opacity])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+                                    fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 15, 'center',
+                                        toCssColor(bordersColor.concat([opacity])));
+
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                }else if(element.type == 'color'){
+                                    const text = element.data.text;
+                                    const value = element.data.value;
+                                    const hasOpacity = element.data.hasOpacity;
+
+                                    drawRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        toCssColor(value.slice(0,3).concat([opacity*(hasOpacity?value[3]:1)])),
+                                        toCssColor(bordersColor.concat([opacity]))
+                                    );
+
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
                                 }
                                 column++;
                             }
@@ -478,14 +704,6 @@ window.arrasModules = undefined;
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
                         optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
                         displayTab = (optionsAnimations.tab-75)/410*menuTabs.length;
-                        
-                        let drawRect = (ctx, position, color)=>{
-                            ctx.beginPath();
-                            ctx.rect(position[0], position[1], position[2], position[3]);
-                            ctx.fillStyle = color;
-                            ctx.fill();
-                            ctx.closePath();
-                        };
 
                         let barrelsColor = [0x63, 0x5f, 0x5f];
                         let bordersColor = [0x13, 0x13, 0x13];
@@ -546,14 +764,14 @@ window.arrasModules = undefined;
                             if(menuTabs[Math.round(displayTab)].useExistingTab){
                                 opacity = Math.abs(displayTab-Math.round(displayTab))*2;
                             }
-                            drawRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
-                            drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
+                            fillRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
+                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
 
                             if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                 drawOptions(canvas, menuTabs[Math.round(displayTab)].options, 1-Math.abs(displayTab-Math.round(displayTab))*2);
                             }
 
-                            drawRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
+                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
 
                             ctx.beginPath();
                             ctx.lineWidth = lineWidth*scale;
@@ -567,23 +785,23 @@ window.arrasModules = undefined;
                             ctx.stroke();
                         }
 
-                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
-                        drawRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
+                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
+                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
 
                         for(glowingTab of Object.values(glowingTabs)){
                             if(glowingTab != -1){
                                 let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
                                     rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
                             }
                         }
                         for(clickButtonId of Object.values(clickButtonIds)){
                             if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
                                 let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
                                     rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                                drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
                             }
                         }
 
@@ -604,7 +822,7 @@ window.arrasModules = undefined;
                         let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
                             rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
 
-                        drawRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
+                        fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
 
                         ctx.beginPath();
                         ctx.lineWidth = lineWidth*scale;
@@ -625,14 +843,8 @@ window.arrasModules = undefined;
 
                         for(let i=0; i<menuTabs.length; i++){
                             let text = menuTabs[i].name;
-                            ctx.font = 'bold '+15*scale+'px / '+25.6*scale+'px Ubuntu';
-                            ctx.lineWidth = lineWidth*scale;
-                            ctx.strokeStyle = toCssColor(bordersColor);
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.strokeText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
-                            ctx.fillStyle = toCssColor(textColor);
-                            ctx.fillText(text, (75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale);
+                            drawText(ctx, text, [(75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale], 15, lineWidth, 'center',
+                                toCssColor(textColor), toCssColor(bordersColor));
                         }
                     });
                     function inputDown(identifier, event){
