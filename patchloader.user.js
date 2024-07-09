@@ -300,6 +300,52 @@ window.arrasModules = undefined;
                 searchValue: '(t=e[t]).id="canvas",document.body.appendChild(t)',
                 replaceValue: '(t=e[t]).id="canvas",document.body.appendChild(t);arrasDispatchInternalEvent({type:"canvas", parent:t, canvas:r})'
             }
+        },{
+            type: 'append',
+            data: {
+                appendValue: `
+                let getCurrentTheme = undefined;
+                let setThemeFromThemeCode = undefined;
+                (async function(){
+                    let currentTheme = undefined;
+                    getCurrentTheme = ()=>{
+                        return currentTheme;
+                    };
+                    setThemeFromThemeCode = (themeCode)=>{
+                        const EncodedThemeData = Uint8Array.from(atob(themeCode),x=>x.charCodeAt(0));
+                        let i = 6;
+                        const read = (n)=>{
+                            i += n;
+                            return EncodedThemeData.slice(i-n,i);
+                        };
+                        const decodeString = (uint8Array)=>{
+                            return new TextDecoder().decode(uint8Array);
+                        };
+                        currentTheme = {
+                            name: decodeString(read(read(1)[0])),
+                            author: decodeString(read(read(1)[0])),
+                            colors: {},
+                            borders: {}
+                        };
+                        let colors = Array.from(read(read(1)[0]*3));
+                        let borders = Array.from(read(read(1)[0]*3));
+                        currentTheme.borders.blendRatio = read(1)/0xff;
+                        currentTheme.borders.neonBorders = !!read(1);
+                        currentTheme.borders.borders = borders.slice(0,3);
+
+                        let colorNames = [
+                            'shieldBars','healthBars','triangles','neutral','hexagons','crashers','eggs','walls','text','borders',
+                            'blue','green','red','squares','pentagons','purple','barrels','rogues','background','grid'
+                        ]
+                        for(let j=0; j<colors.length/3; j++){
+                            currentTheme.colors[colorNames[j]] = colors.slice(j*3,j*3+3);
+                        }
+                        
+                    };
+                    setThemeFromThemeCode('arras/ABBUxpZ2h0AkNYFHrT27nofueJbf3zgHrbuu+Zw+jr96Skrf///0hISDyky4q8P+A+Qe/HS41q38xmnKenr3Jvb9vb2wAAAAFISEiZAA');
+                })();
+                `
+            }
         }, {
             type: 'append',
             data: {
@@ -336,6 +382,7 @@ window.arrasModules = undefined;
                     let interfaceSize = 1;
                     let interfaceScale = interfaceSize;
                     let lineWidth = 3;
+                    let colors = getCurrentTheme().colors;
                     let menuTabs = [{
                         name:'Options',
                         click:[100,50],
@@ -536,11 +583,6 @@ window.arrasModules = undefined;
                         let ctx = canvas.getContext("2d");
                         const scale = interfaceScale;
 
-                        let greenColor = [0x8a, 0xbc, 0x3f];
-                        let barrelsColor = [0x63, 0x5f, 0x5f];
-                        let bordersColor = [0x13, 0x13, 0x13];
-                        let textColor = [0xf2, 0xf2, 0xf2];
-
                         for(let i=0; i<options.length; i++){
                             const row = options[i];
                             const columns = row.length;
@@ -553,22 +595,22 @@ window.arrasModules = undefined;
                                 if(element.type == 'title'){
                                     const text = element.data.text;
                                     drawText(ctx, text, [(209.5+45+optionsAnimations.open)*scale, (i*40+100-1)*scale], 17, lineWidth+.5, 'center',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'text'){
                                     const text = element.data.text;
                                     drawText(ctx, text, [(posX +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'checkbox'){
                                     const text = element.data.text;
 
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
-                                        toCssColor(textColor.concat([opacity])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.text.concat([opacity])),
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
 
                                     drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'slider'){
                                     const text = element.data.text;
                                     const value = element.data.value;
@@ -577,39 +619,39 @@ window.arrasModules = undefined;
 
                                     const sliderPercentage = (value-minimumValue)/(maximumValue-minimumValue);
 
-                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(textColor.concat([opacity])));
+                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(colors.text.concat([opacity])));
                                     fillRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, sliderPercentage*137.5*scale, 20*scale],
-                                        toCssColor(greenColor.concat([opacity*0xb2/0xff]))
+                                        toCssColor(colors.green.concat([opacity*0xb2/0xff]))
                                     );
-                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(bordersColor.concat([opacity])));
+                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(colors.borders.concat([opacity])));
 
                                     drawRect(ctx,
                                         [(posX+sliderPercentage*137.5 +45+optionsAnimations.open)*scale, (i*40+80)*scale, 12.5*scale, 25*scale],
-                                        toCssColor(greenColor.concat([opacity])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.green.concat([opacity])),
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
 
                                     drawText(ctx, text, [(posX+160 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'textInput'){
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
-                                        toCssColor(textColor.concat([opacity])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.text.concat([opacity])),
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
                                 }else if(element.type == 'dropdown'){
                                     const value = element.data.value;
 
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
-                                        toCssColor(textColor.concat([opacity])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.text.concat([opacity])),
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
 
                                     ctx.beginPath();
                                     ctx.lineWidth = 0;
-                                    ctx.fillStyle = toCssColor(bordersColor);
+                                    ctx.fillStyle = toCssColor(colors.borders);
                                     ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
                                     ctx.lineTo((posX+width-15 +45+optionsAnimations.open)*scale, (i*40+90+5.625)*scale);
                                     ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
@@ -617,33 +659,33 @@ window.arrasModules = undefined;
                                     ctx.closePath();
                                     
                                     drawText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'button'){
                                     const text = element.data.text;
 
-                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(barrelsColor.concat([opacity])));
+                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.barrels.concat([opacity])));
                                     fillRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80+15)*scale, width*scale, 10*scale],
-                                        toCssColor(bordersColor.concat([opacity*0x32/0xff]))
+                                        toCssColor(colors.borders.concat([opacity*0x32/0xff]))
                                     );
-                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(bordersColor.concat([opacity])));
+                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.borders.concat([opacity])));
 
                                     drawText(ctx, text, [(posX+width/2 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'center',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'keybind'){
                                     const text = element.data.text;
                                     const value = element.data.value;
 
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
-                                        toCssColor(textColor.concat([opacity])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.text.concat([opacity])),
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
                                     fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 15, 'center',
-                                        toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.borders.concat([opacity])));
 
                                     drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'color'){
                                     const text = element.data.text;
                                     const value = element.data.value;
@@ -652,11 +694,11 @@ window.arrasModules = undefined;
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
                                         toCssColor(value.slice(0,3).concat([opacity*(hasOpacity?value[3]:1)])),
-                                        toCssColor(bordersColor.concat([opacity]))
+                                        toCssColor(colors.borders.concat([opacity]))
                                     );
 
                                     drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
-                                        toCssColor(textColor.concat([opacity])) , toCssColor(bordersColor.concat([opacity])));
+                                        toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }
                                 column++;
                             }
@@ -705,9 +747,14 @@ window.arrasModules = undefined;
                         optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
                         displayTab = (optionsAnimations.tab-75)/410*menuTabs.length;
 
-                        let barrelsColor = [0x63, 0x5f, 0x5f];
-                        let bordersColor = [0x13, 0x13, 0x13];
-                        let textColor = [0xf2, 0xf2, 0xf2];
+                        if(optionsOpen && Math.round(displayTab) == 1){
+                            for(input of document.body.querySelectorAll('input')){
+                                if(input.value.includes('arras/')){
+                                    setThemeFromThemeCode(input.value);
+                                    colors = getCurrentTheme().colors;
+                                }
+                            }
+                        }
 
                         let patchesOptions = [
                             [{
@@ -727,6 +774,41 @@ window.arrasModules = undefined;
                                 type: 'text',
                                 data:{
                                     text: 'Generic text'
+                                }
+                            }],
+                            [{
+                                type: 'title',
+                                data:{
+                                    text: 'Add a patch'
+                                }
+                            },{
+                            }],[{
+                                type: 'textInput',
+                                data:{
+                                    callback: (checked)=>{},
+                                    requiresReload: true,
+                                    text: 'Type the url here...',
+                                    value: ''
+                                }
+                            },{
+                                type: 'button',
+                                data:{
+                                    text: 'Add from url'
+                                }
+                            }],[{
+                                type: 'text',
+                                data:{
+                                    text: 'No file chosen'
+                                }
+                            },{
+                                type: 'button',
+                                data:{
+                                    text: 'Choose file'
+                                }
+                            },{
+                                type: 'button',
+                                data:{
+                                    text: 'Add from chosen file'
                                 }
                             }]
                         ];
@@ -764,18 +846,18 @@ window.arrasModules = undefined;
                             if(menuTabs[Math.round(displayTab)].useExistingTab){
                                 opacity = Math.abs(displayTab-Math.round(displayTab))*2;
                             }
-                            fillRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(barrelsColor.concat([opacity])));
-                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(barrelsColor));
+                            fillRect(ctx, [(25+5+optionsAnimations.open)*scale, (75+5)*scale, (460-10)*scale, (height-10)*scale], toCssColor(colors.barrels.concat([opacity])));
+                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(colors.barrels));
 
                             if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                 drawOptions(canvas, menuTabs[Math.round(displayTab)].options, 1-Math.abs(displayTab-Math.round(displayTab))*2);
                             }
 
-                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(barrelsColor));
+                            fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(colors.barrels));
 
                             ctx.beginPath();
                             ctx.lineWidth = lineWidth*scale;
-                            ctx.strokeStyle = toCssColor(bordersColor);
+                            ctx.strokeStyle = toCssColor(colors.borders);
                             ctx.lineCap = 'round';
                             ctx.lineJoin = 'round';
                             ctx.moveTo((25+optionsAnimations.open)*scale,(75-15+height)*scale);
@@ -785,23 +867,23 @@ window.arrasModules = undefined;
                             ctx.stroke();
                         }
 
-                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(barrelsColor));
-                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(bordersColor.concat([0x33/0xff])));
+                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(colors.barrels));
+                        fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(colors.borders.concat([0x33/0xff])));
 
                         for(glowingTab of Object.values(glowingTabs)){
                             if(glowingTab != -1){
                                 let leftMenuTabEdge = (glowingTab/menuTabs.length*410+75)+optionsAnimations.open,
                                     rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(textColor.concat([0x25/0xff])));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(colors.barrels));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(colors.text.concat([0x25/0xff])));
                             }
                         }
                         for(clickButtonId of Object.values(clickButtonIds)){
                             if(clickButtonId >= 1 && clickButtonId <= menuTabs.length){
                                 let leftMenuTabEdge = ((clickButtonId-1)/menuTabs.length*410+75)+optionsAnimations.open,
                                     rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
-                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(barrelsColor));
-                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(bordersColor.concat([0x6f/0xff])));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(colors.barrels));
+                                fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, 50*scale+1], toCssColor(colors.borders.concat([0x6f/0xff])));
                             }
                         }
 
@@ -809,7 +891,7 @@ window.arrasModules = undefined;
                             if(i != menuTabs.length-1){
                                 ctx.beginPath();
                                 ctx.lineWidth = lineWidth*scale;
-                                ctx.strokeStyle = toCssColor(bordersColor);
+                                ctx.strokeStyle = toCssColor(colors.borders);
                                 ctx.lineCap = 'round';
                                 ctx.lineJoin = 'round';
                                 const lineX = (75+optionsAnimations.open+(410/(menuTabs.length))*(i+1))*scale;
@@ -822,11 +904,11 @@ window.arrasModules = undefined;
                         let leftMenuTabEdge = optionsAnimations.tab+optionsAnimations.open,
                             rightMenuTabEdge = leftMenuTabEdge+(410/menuTabs.length);
 
-                        fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(barrelsColor));
+                        fillRect(ctx, [leftMenuTabEdge*scale, 25*scale, 410/menuTabs.length*scale, (50+lineWidth/2)*scale+1], toCssColor(colors.barrels));
 
                         ctx.beginPath();
                         ctx.lineWidth = lineWidth*scale;
-                        ctx.strokeStyle = toCssColor(bordersColor);
+                        ctx.strokeStyle = toCssColor(colors.borders);
                         ctx.lineCap = 'round';
                         ctx.linejoin = 'round';
                         ctx.moveTo(leftMenuTabEdge*scale,25*scale);
@@ -844,7 +926,7 @@ window.arrasModules = undefined;
                         for(let i=0; i<menuTabs.length; i++){
                             let text = menuTabs[i].name;
                             drawText(ctx, text, [(75+optionsAnimations.open+410/menuTabs.length*(i+.5))*scale, 50*scale], 15, lineWidth, 'center',
-                                toCssColor(textColor), toCssColor(bordersColor));
+                                toCssColor(colors.text), toCssColor(colors.borders));
                         }
                     });
                     function inputDown(identifier, event){
