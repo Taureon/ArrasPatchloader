@@ -1048,6 +1048,22 @@ window.arrasModules = undefined;
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                     event.preventDefault();
+                                    let inputLocation = [event.originalEvent.clientX/scale, Math.round((event.originalEvent.clientY/scale-75)/40)*40+75];
+                                    let centeredLocation = [
+                                        inputLocation[0] - (innerWidth /interfaceScale)/2,
+                                        inputLocation[1] - (innerHeight/interfaceScale)/2
+                                    ];
+                                    centeredLocation[0] *= (centeredLocation[1]/(event.originalEvent.clientY/scale-(innerHeight/interfaceScale)/2));
+                                    inputLocation = [
+                                        Math.min(Math.max(centeredLocation[0] + (innerWidth/interfaceScale)/2,inputLocation[0]-50), inputLocation[0]+50),
+                                        centeredLocation[1] + (innerHeight/interfaceScale)/2
+                                    ];
+
+                                    let inputmove = new ArrasTouchEvent('touchmove',[{clientX:inputLocation[0]*scale,clientY:inputLocation[1]*scale,identifier:4096}]);
+                                    if(identifier == 'mouse'){
+                                        inputmove = new ArrasMouseEvent('mousemove',inputLocation[0]*scale,inputLocation[1]*scale,0,0,0,1);
+                                    }
+                                    arrasDispatchEvent(inputmove);
                                 }
                             }
                         }
