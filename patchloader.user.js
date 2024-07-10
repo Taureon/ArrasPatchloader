@@ -606,12 +606,26 @@ window.arrasModules = undefined;
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'checkbox'){
                                     const text = element.data.text;
+                                    const value = element.data.value;
 
                                     drawRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
-                                        toCssColor(colors.text.concat([opacity])),
+                                        toCssColor((value?colors.green:colors.text).concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
+
+                                    if(value){
+                                        ctx.beginPath();
+                                        ctx.lineWidth = lineWidth;
+                                        ctx.lineCap = 'round';
+                                        ctx.lineJoin = 'round';
+                                        ctx.strokeStyle = toCssColor(colors.text);
+                                        ctx.moveTo((posX+ 5.75 +45+optionsAnimations.open)*scale, (i*40+80+14.5)*scale);
+                                        ctx.lineTo((posX+ 9.5 +45+optionsAnimations.open)*scale, (i*40+80+18.25   )*scale);
+                                        ctx.lineTo((posX+19.5 +45+optionsAnimations.open)*scale, (i*40+80+ 8.25   )*scale);
+                                        ctx.stroke();
+                                        ctx.closePath();
+                                    }
 
                                     drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
@@ -667,9 +681,9 @@ window.arrasModules = undefined;
                                     ctx.beginPath();
                                     ctx.lineWidth = 0;
                                     ctx.fillStyle = toCssColor(colors.borders);
-                                    ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
-                                    ctx.lineTo((posX+width-15 +45+optionsAnimations.open)*scale, (i*40+90+5.625)*scale);
-                                    ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90-.625)*scale);
+                                    ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90- .625)*scale);
+                                    ctx.lineTo((posX+width-15    +45+optionsAnimations.open)*scale, (i*40+90+5.625)*scale);
+                                    ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90- .625)*scale);
                                     ctx.fill();
                                     ctx.closePath();
                                     
@@ -783,7 +797,8 @@ window.arrasModules = undefined;
                                 data:{
                                     callback: (checked)=>{},
                                     requiresReload: true,
-                                    text: 'Enable Patches'
+                                    text: 'Enable Patches',
+                                    value: true
                                 }
                             },{
                                 type: 'text',
@@ -802,8 +817,8 @@ window.arrasModules = undefined;
                                 data:{
                                     callback: (checked)=>{},
                                     requiresReload: true,
-                                    text: 'Type the url here...',
                                     value: '',
+                                    placeHolder: 'Type the url here...',
                                     columnSpan: 3
                                 }
                             },{
@@ -846,7 +861,8 @@ window.arrasModules = undefined;
                                 type:'checkbox',
                                 data:{
                                     callback: (checked)=>{},
-                                    text:'Enabled'
+                                    text:'Enabled',
+                                    value: true
                                 }
                             }]);
                         }
