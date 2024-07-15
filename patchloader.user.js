@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Arras.io Patchloader
 // @namespace    arras.io.patchloader
-// @version      2024-07-10
+// @version      2024-07-15
 // @description  An userscript that loads script patches for Arras.io
 // @author       https://github.com/Taureon, https://github.com/Ric3cir121
 // @match        *://arras.io/mod*
