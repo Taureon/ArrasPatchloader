@@ -602,15 +602,22 @@ window.arrasModules = undefined;
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'text'){
                                     const text = element.data.text;
-                                    drawText(ctx, text, [(posX +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'checkbox'){
                                     const text = element.data.text;
                                     const value = element.data.value;
+                                    const hover = element.data.hover??0;
 
+                                    fillRect(ctx,
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        toCssColor((value?colors.green:colors.text).concat([opacity]))
+                                    );
+
+                                    const greenTextMatch = ((a,b)=>{return a[0]==b[0]&&a[1]==b[1]&&a[2]==b[2];})(colors.green, colors.text)
                                     drawRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
-                                        toCssColor((value?colors.green:colors.text).concat([opacity])),
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        toCssColor((value && hover==1 && !greenTextMatch ? colors.text:colors.borders).concat([opacity*([0x00, 0x25, 0x4b][hover])/0xff])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
 
@@ -691,12 +698,20 @@ window.arrasModules = undefined;
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'button'){
                                     const text = element.data.text;
+                                    const hover = element.data.hover??0;
 
                                     fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.barrels.concat([opacity])));
+
                                     fillRect(ctx,
                                         [(posX +45+optionsAnimations.open)*scale, (i*40+80+15)*scale, width*scale, 10*scale],
                                         toCssColor(colors.borders.concat([opacity*0x32/0xff]))
                                     );
+
+                                    fillRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, (hover==2?15:25)*scale],
+                                        toCssColor((hover==1 ? colors.text:colors.borders).concat([opacity*([0x00, 0x25, 0x65][hover])/0xff]))
+                                    );
+
                                     strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.borders.concat([opacity])));
 
                                     drawText(ctx, text, [(posX+width/2 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'center',
@@ -785,88 +800,90 @@ window.arrasModules = undefined;
                             }
                         }
 
-                        let patchesOptions = [
-                            [{
-                                type: 'title',
-                                data:{
-                                    text: 'Patches'
-                                }
-                            },{
-                            }],[{
-                                type: 'checkbox',
-                                data:{
-                                    callback: (checked)=>{},
-                                    requiresReload: true,
-                                    text: 'Enable Patches',
-                                    value: true
-                                }
-                            },{
-                                type: 'text',
-                                data:{
-                                    text: 'Generic text'
-                                }
-                            }],
-                            [{
-                                type: 'title',
-                                data:{
-                                    text: 'Add a patch'
-                                }
-                            },{
-                            }],[{
-                                type: 'textInput',
-                                data:{
-                                    callback: (checked)=>{},
-                                    requiresReload: true,
-                                    value: '',
-                                    placeHolder: 'Type the url here...',
-                                    columnSpan: 3
-                                }
-                            },{
-                                type: 'button',
-                                data:{
-                                    text: 'Add from url',
-                                    columnSpan: 1
-                                }
-                            }],[{
-                                type: 'text',
-                                data:{
-                                    text: 'No file chosen',
-                                    columnSpan: 2
-                                }
-                            },{
-                                type: 'button',
-                                data:{
-                                    text: 'Choose file',
-                                    columnSpan: 1
-                                }
-                            },{
-                                type: 'button',
-                                data:{
-                                    text: 'Add from file',
-                                    columnSpan: 1
-                                }
-                            }]
-                        ];
-                        for(const module of arrasModules){
-                            patchesOptions.push([{type:'title',data:{text: module.name }}]);
-                            patchesOptions.push([{
-                                type:'text',
-                                data:{text:'Author: '+module.author}
-                            }]);
-                            patchesOptions.push([{
-                                type:'text',
-                                data:{text:'Description: '+module.description}
-                            }]);
-                            patchesOptions.push([{
-                                type:'checkbox',
-                                data:{
-                                    callback: (checked)=>{},
-                                    text:'Enabled',
-                                    value: true
-                                }
-                            }]);
+                        if(!menuTabs[4].options){
+                            let patchesOptions = [
+                                [{
+                                    type: 'title',
+                                    data:{
+                                        text: 'Patches'
+                                    }
+                                },{
+                                }],[{
+                                    type: 'checkbox',
+                                    data:{
+                                        callback: (checked)=>{},
+                                        requiresReload: true,
+                                        text: 'Enable Patches',
+                                        value: true
+                                    }
+                                },{
+                                    type: 'text',
+                                    data:{
+                                        text: 'Generic text'
+                                    }
+                                }],
+                                [{
+                                    type: 'title',
+                                    data:{
+                                        text: 'Add a patch'
+                                    }
+                                },{
+                                }],[{
+                                    type: 'textInput',
+                                    data:{
+                                        callback: (checked)=>{},
+                                        requiresReload: true,
+                                        value: '',
+                                        placeHolder: 'Type the url here...',
+                                        columnSpan: 3
+                                    }
+                                },{
+                                    type: 'button',
+                                    data:{
+                                        text: 'Add from url',
+                                        columnSpan: 1
+                                    }
+                                }],[{
+                                    type: 'text',
+                                    data:{
+                                        text: 'No file chosen',
+                                        columnSpan: 2
+                                    }
+                                },{
+                                    type: 'button',
+                                    data:{
+                                        text: 'Choose file',
+                                        columnSpan: 1
+                                    }
+                                },{
+                                    type: 'button',
+                                    data:{
+                                        text: 'Add from file',
+                                        columnSpan: 1
+                                    }
+                                }]
+                            ];
+                            for(const module of arrasModules){
+                                patchesOptions.push([{type:'title',data:{text: module.name }}]);
+                                patchesOptions.push([{
+                                    type:'text',
+                                    data:{text:'Author: '+module.author}
+                                }]);
+                                patchesOptions.push([{
+                                    type:'text',
+                                    data:{text:'Description: '+module.description}
+                                }]);
+                                patchesOptions.push([{
+                                    type:'checkbox',
+                                    data:{
+                                        callback: (checked)=>{},
+                                        text:'Enabled',
+                                        value: true
+                                    }
+                                }]);
+                            }
+                            menuTabs[4].options = patchesOptions;
                         }
-                        menuTabs[4].options = patchesOptions;
 
                         let leftTab  = menuTabs[Math.floor(displayTab)];
                         let rightTab = menuTabs[Math.ceil (displayTab)];
@@ -986,6 +1003,61 @@ window.arrasModules = undefined;
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                                 clickButtonIds[identifier] = 0;
                             }
+                            
+                            let options = menuTabs[Math.round(displayTab)].options??[];
+                            let thisButtonId = menuTabs.length+1;
+                            for(let i=0; i<options.length; i++){
+                                const row = options[i];
+                                let column = 0;
+                                let columns = 0;
+                                for(let j=0; j<row.length; j++){
+                                    columns += (row[j].data??{}).columnSpan??1;
+                                }
+                                for(let j=0; j<row.length; j++){
+                                    const element = row[j];
+                                    const posX = 15*column + (420-15*(columns-1))*(column/columns);
+                                    const columnSpan = (element.data??{}).columnSpan??1;
+                                    const width = 15*(columnSpan-1) + (420-15*(columns-1))*(columnSpan/columns);
+    
+                                    if(element.type == 'title'){
+                                    }else if(element.type == 'text'){
+                                    }else if(element.type == 'checkbox'){
+                                        if(isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            ){
+                                            clickButtonIds[identifier] = thisButtonId;
+
+                                            element.data.hover = 2;
+                                        }
+                                    }else if(element.type == 'slider'){
+                                        const minimumValue = element.data.minimumValue??0;
+                                        const maximumValue = element.data.maximumValue??1;
+
+                                        if(isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+150+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            ){
+                                            clickButtonIds[identifier] = thisButtonId;
+
+                                            let slider = (event.originalEvent.clientX-(posX+45+6.25+optionsAnimations.open))/137.5;
+                                            element.data.value = Math.min(Math.max(minimumValue+slider*(maximumValue-minimumValue),minimumValue),maximumValue);
+                                        }
+                                    }else if(element.type == 'textInput'){
+                                    }else if(element.type == 'dropdown'){
+                                    }else if(element.type == 'button'){
+                                        if(isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            ){
+                                            clickButtonIds[identifier] = thisButtonId;
+
+                                            element.data.hover = 2;
+                                        }
+                                    }else if(element.type == 'keybind'){
+                                    }else if(element.type == 'color'){
+                                    }
+                                    column += columnSpan;
+                                    thisButtonId += 1;
+                                }
+                            }
                         }else{
                             let atSpawnPage = true;
 
@@ -1029,6 +1101,56 @@ window.arrasModules = undefined;
                             if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,25*scale,(55+optionsAnimations.open)*scale,55*scale])){
                                 if(clickButtonIds[identifier] == 0){
                                     optionsOpen = false;
+                                }
+                            }
+                            
+                            let options = menuTabs[Math.round(displayTab)].options??[];
+                            let thisButtonId = menuTabs.length+1;
+                            for(let i=0; i<options.length; i++){
+                                const row = options[i];
+                                let column = 0;
+                                let columns = 0;
+                                for(let j=0; j<row.length; j++){
+                                    columns += (row[j].data??{}).columnSpan??1;
+                                }
+                                for(let j=0; j<row.length; j++){
+                                    const element = row[j];
+                                    const posX = 15*column + (420-15*(columns-1))*(column/columns);
+                                    const columnSpan = (element.data??{}).columnSpan??1;
+                                    const width = 15*(columnSpan-1) + (420-15*(columns-1))*(columnSpan/columns);
+    
+                                    if(element.type == 'title'){
+                                    }else if(element.type == 'text'){
+                                    }else if(element.type == 'checkbox'){
+                                        if(isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            ){
+                                            element.data.hover = 1;
+                                            if(clickButtonIds[identifier] == thisButtonId){
+                                                element.data.value = !element.data.value;
+                                            }
+                                        }else{
+                                            element.data.hover = 0;
+                                        }
+                                    }else if(element.type == 'slider'){
+                                    }else if(element.type == 'textInput'){
+                                    }else if(element.type == 'dropdown'){
+                                    }else if(element.type == 'button'){
+                                        if(isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            ){
+                                            element.data.hover = 1;
+                                            if(clickButtonIds[identifier] == thisButtonId){
+                                                
+                                            }
+                                        }else{
+                                            element.data.hover = 0;
+                                        }
+                                    }else if(element.type == 'keybind'){
+                                    }else if(element.type == 'color'){
+                                    }
+                                    column += columnSpan;
+                                    thisButtonId += 1;
                                 }
                             }
                         }else{
@@ -1080,6 +1202,61 @@ window.arrasModules = undefined;
                                         inputmove = new ArrasMouseEvent('mousemove',inputLocation[0]*scale,inputLocation[1]*scale,0,0,0,1);
                                     }
                                     arrasDispatchEvent(inputmove);
+                                }
+                            }
+                            
+                            let options = menuTabs[Math.round(displayTab)].options??[];
+                            let thisButtonId = menuTabs.length+1;
+                            for(let i=0; i<options.length; i++){
+                                const row = options[i];
+                                let column = 0;
+                                let columns = 0;
+                                for(let j=0; j<row.length; j++){
+                                    columns += (row[j].data??{}).columnSpan??1;
+                                }
+                                for(let j=0; j<row.length; j++){
+                                    const element = row[j];
+                                    const posX = 15*column + (420-15*(columns-1))*(column/columns);
+                                    const columnSpan = (element.data??{}).columnSpan??1;
+                                    const width = 15*(columnSpan-1) + (420-15*(columns-1))*(columnSpan/columns);
+    
+                                    if(element.type == 'title'){
+                                    }else if(element.type == 'text'){
+                                    }else if(element.type == 'checkbox'){
+                                        if(element.data.hover != 2){
+                                            if(isCursorInsideRect(event.originalEvent,
+                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                                ){
+                                                element.data.hover = 1;
+                                            }else{
+                                                element.data.hover = 0;
+                                            }
+                                        }
+                                    }else if(element.type == 'slider'){
+                                        const minimumValue = element.data.minimumValue??0;
+                                        const maximumValue = element.data.maximumValue??1;
+
+                                        if(clickButtonIds[identifier] == thisButtonId){
+                                            let slider = (event.originalEvent.clientX-(posX+45+6.25+optionsAnimations.open))/137.5;
+                                            element.data.value = Math.min(Math.max(minimumValue+slider*(maximumValue-minimumValue),minimumValue),maximumValue);
+                                        }
+                                    }else if(element.type == 'textInput'){
+                                    }else if(element.type == 'dropdown'){
+                                    }else if(element.type == 'button'){
+                                        if(element.data.hover != 2){
+                                            if(isCursorInsideRect(event.originalEvent,
+                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                                ){
+                                                element.data.hover = 1;
+                                            }else{
+                                                element.data.hover = 0;
+                                            }
+                                        }
+                                    }else if(element.type == 'keybind'){
+                                    }else if(element.type == 'color'){
+                                    }
+                                    column += columnSpan;
+                                    thisButtonId += 1;
                                 }
                             }
                         }
