@@ -530,6 +530,259 @@ window.arrasModules = undefined;
                                 columnSpan: 1
                             }
                         }]]
+                    },{
+                        name:'YT Options',
+                        click:[455,50],
+                        useExistingTab: false,
+                        height: 9*40+10,
+                        options: [[{
+                            type:'title',
+                            data:{text:'General'}
+                        }],[{
+                            type:'checkbox',
+                            data:{text:'Noclip'}
+                        },{
+                            type:'checkbox',
+                            data:{text:'No HitBox'}
+                        }],[{
+                            type:'checkbox',
+                            data:{text:'No Recoil'}
+                        },{
+                            type:'checkbox',
+                            data:{text:'Invisibility'}
+                        }],[{
+                            type:'title',
+                            data:{text:'Players'}
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                value: '0',
+                                options:{
+                                    '0': 'Sandbox status (you)'
+                                },
+                                columnSpan: 1
+                            }
+                        }],[{
+                            type:'button',
+                            data:{text:'OP'}
+                        },{
+                            type:'button',
+                            data:{text:'DeOP'}
+                        },{
+                            type:'button',
+                            data:{text:'Kill'}
+                        },{
+                            type:'button',
+                            data:{text:'Ban'}
+                        }],[{
+                            type:'button',
+                            data:{text:'Teleport here'}
+                        },{
+                            type:'button',
+                            data:{text:'Teleport to'}
+                        }],[{
+                            type:'checkbox',
+                            data:{text:'Move to target',columnSpan:3}
+                        },{
+                            type:'checkbox',
+                            data:{text:'Shoot target',columnSpan:3}
+                        },{
+                            type:'button',
+                            data:{text:'Select',columnSpan:2}
+                        }],[{
+                            type:'title',
+                            data:{text:'Spawn Poligons'}
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                value: '0',
+                                options:{
+                                    '0': 'Egg',
+                                    '4': 'Square',
+                                    '8': 'Triangle',
+                                    '12': 'Pentagon',
+                                    '18': 'Hexagon',
+                                    '22': 'Heptagon',
+                                    '26': 'Octagon',
+                                    '30': 'Nonagon',
+                                    '34': 'Gem',
+                                    '35': 'Gem',
+                                    '36': 'Relic',
+                                    '37': 'Relic',
+                                    '38': 'Relic',
+                                    '39': 'Cube',
+                                    '40': 'Icosahedron',
+                                    '41': 'Dodecahedron'
+                                },
+                                columnSpan: 3
+                            }
+                        },{
+                            type:'dropdown',
+                            data:{
+                                value: '0',
+                                options:{
+                                    '0': 'Regular',
+                                    '1': 'Beta',
+                                    '2': 'Alpha',
+                                    '3': 'Crasher',
+                                    '4': 'Old Beta',
+                                    '5': 'Old Alpha'
+                                },
+                                columnSpan: 2
+                            }
+                        },{
+                            type:'dropdown',
+                            data:{
+                                value: '0',
+                                options:{
+                                    '0': 'Regular',
+                                    '1': 'Shiny',
+                                    '2': 'Legendary',
+                                    '3': 'Shadow',
+                                    '4': 'Rainbow',
+                                    '5': 'Trans'
+                                },
+                                columnSpan: 2
+                            }
+                        }],[{
+                            type:'textInput',
+                            data:{value:'x1',columnSpan: 3}
+                        },{
+                            type:'button',
+                            data:{text:'Spawn',columnSpan: 4}
+                        }],[{
+                            type:'title',
+                            data:{text:'Sandbox Settings'}
+                        }],[{
+                            type:'textInput',
+                            data:{value:'40x40',columnSpan:2}
+                        },{
+                            type:'button',
+                            data:{text:'Set Size'}
+                        },{
+                            type:'button',
+                            data:{text:'Reset'}
+                        }],[{
+                            type:'dropdown',
+                            data:{value:'-1',columnSpan:2}
+                        },{
+                            type:'button',
+                            data:{text:'Spawn Team'}
+                        },{
+                            type:'button',
+                            data:{text:'Set for everyone'}
+                        }],[{
+                            type:'textInput',
+                            data:{value:'',placeHolder:'Enter a number (0-250)...'}
+                        },{
+                            type:'button',
+                            data:{text:'Set max. Polygons'}
+                        }],[{
+                            type:'button',
+                            data:{text:'Restart the Server'}
+                        }],[{
+                            type:'title',
+                            data:{text:'Game Rules'}
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                value:'0',
+                                options:{
+                                    '0':'FFA',
+                                    '1':'2TDM',
+                                    '2':'3TDM',
+                                    '3':'4TDM',
+                                    '4':'Duos',
+                                    '5':'Squads',
+                                    '6':'Clan wars'
+                                }
+                            }
+                        },{
+                            type:'dropdown',
+                            data:{
+                                value:'0',
+                                options:{
+                                    '0':'No Custom Mode',
+                                    '1':'Dreadnoughts',
+                                    '2':'Old Dreadnoughts',
+                                    '3':'Arms Race',
+                                    '4':'Growth',
+                                    '5':'Overgrowth',
+                                    '6':'Magic Maze',
+                                    '7':'Manhunt',
+                                    '8':'Succer',
+                                    '9':'Mothership',
+                                    '10':'Train Wars',
+                                    '11':'Skinwalkers'
+                                }
+                            }
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                value:'0',
+                                options:{
+                                    '0':'Siege Off',
+                                    '1':'Siege Blitz',
+                                    '2':'Siege Citadel'
+                                }
+                            }
+                        },{
+                            type:'dropdown',
+                            data:{
+                                value:'0',
+                                options:{
+                                    '0':'Assault Off',
+                                    '1':'Assault Bastion',
+                                    '1':'Assault Booster'
+                                }
+                            }
+                        }],[{
+                            type:'checkbox',
+                            data:{text:'Maze'}
+                        },{
+                            type:'checkbox',
+                            data:{text:'Spawn bosses'}
+                        }],[{
+                            type:'checkbox',
+                            data:{text:'Outbreak'}
+                        }],[{
+                            type:'title',
+                            data:{text:'Other'}
+                        }],[{
+                            type:'dropdown',
+                            data:{
+                                value: '-1',
+                                options:{
+                                    '-1': 'Blue Base Field (Team -1)',
+                                    '-2': 'Red Base Field (Team -2)',
+                                    '-3': 'Green Base Field (Team -3)',
+                                    '-4': 'Purple Base Field (Team -4)',
+                                    '-5': 'Neutral Base Field (Team -5)',
+                                },
+                                columnSpan:2
+                            }
+                        },{
+                            type:'button',
+                            data:{text:'Select Zone'}
+                        },{
+                            type:'button',
+                            data:{text:'Set Zone'}
+                        }],[{
+                            type:'textInput',
+                            data:{value:'9x',columnSpan:2}
+                        },{
+                            type:'button',
+                            data:{text:'Add Points'}
+                        },{
+                            type:'button',
+                            data:{text:'Set Stats'}
+                        }],[{
+                            type:'textInput',
+                            data:{value:'',placeHolder:'Enter a message...'}
+                        },{
+                            type:'button',
+                            data:{text:'Broadcast'}
+                        }]]
                     }];
                     let glowingTabs = {};
                     let clickButtonIds = {};
