@@ -712,7 +712,7 @@ window.arrasModules = undefined;
                                     '5':'Overgrowth',
                                     '6':'Magic Maze',
                                     '7':'Manhunt',
-                                    '8':'Succer',
+                                    '8':'Soccer',
                                     '9':'Mothership',
                                     '10':'Train Wars',
                                     '11':'Skinwalkers'
