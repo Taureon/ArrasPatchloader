@@ -376,8 +376,10 @@ window.arrasModules = undefined;
                     let toCssColor = (color)=>{return 'rgb'+(color.length==4?'a':'')+'('+color.join(',')+')';};
                     let multiplyColor = (color,quantity)=>{return color.map((val,i) => val*quantity);};
                     let optionsOpen = false;
-                    let optionsAnimations = {closed: 0, open: -600, tab: 75, tabHeight: 0, tabDisplayHeight: 0};
+                    let optionsAnimations = {closed: 0, open: -600, tab: 75, tabHeight: 0, tabDisplayHeight: 0, tabScroll: 0};
+                    let tabScroll = 0;
                     let selectedTab = 0;
+                    let prevDisplayTab = 0;
                     let displayTab = 0;
                     let interfaceSize = 1;
                     let interfaceScale = interfaceSize;
@@ -472,10 +474,10 @@ window.arrasModules = undefined;
                             type:'dropdown',
                             data:{
                                 callback: (option) => {},
-                                value: 'Option',
+                                value: '0',
                                 options: {
-                                    0: 'Option',
-                                    1: 'Other option'
+                                    '0': 'Option',
+                                    '1': 'Other option'
                                 },
 
                                 requiresReload: false,
@@ -786,6 +788,7 @@ window.arrasModules = undefined;
                     }];
                     let glowingTabs = {};
                     let clickButtonIds = {};
+                    let wheelIds = {};
                     let lastUpdate = undefined;
 
                     const fillRect = (ctx, position, color)=>{
@@ -836,6 +839,8 @@ window.arrasModules = undefined;
                         let ctx = canvas.getContext("2d");
                         const scale = interfaceScale;
 
+                        let dropdowns = [];
+
                         for(let i=0; i<options.length; i++){
                             const row = options[i];
                             let column = 0;
@@ -851,11 +856,11 @@ window.arrasModules = undefined;
 
                                 if(element.type == 'title'){
                                     const text = element.data.text;
-                                    drawText(ctx, text, [(209.5+45+optionsAnimations.open)*scale, (i*40+100-1)*scale], 17, lineWidth+.5, 'center',
+                                    drawText(ctx, text, [(209.5+45+optionsAnimations.open)*scale, (i*40+100-1-optionsAnimations.tabScroll)*scale], 17, lineWidth+.5, 'center',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'text'){
                                     const text = element.data.text;
-                                    drawText(ctx, text, [(posX+45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'checkbox'){
                                     const text = element.data.text;
@@ -863,13 +868,13 @@ window.arrasModules = undefined;
                                     const hover = element.data.hover??0;
 
                                     fillRect(ctx,
-                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, 25*scale, 25*scale],
                                         toCssColor((value?colors.green:colors.text).concat([opacity]))
                                     );
 
                                     const greenTextMatch = ((a,b)=>{return a[0]==b[0]&&a[1]==b[1]&&a[2]==b[2];})(colors.green, colors.text)
                                     drawRect(ctx,
-                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, 25*scale, 25*scale],
                                         toCssColor((value && hover==1 && !greenTextMatch ? colors.text:colors.borders).concat([opacity*([0x00, 0x25, 0x4b][hover])/0xff])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
@@ -880,14 +885,14 @@ window.arrasModules = undefined;
                                         ctx.lineCap = 'round';
                                         ctx.lineJoin = 'round';
                                         ctx.strokeStyle = toCssColor(colors.text);
-                                        ctx.moveTo((posX+ 5.75 +45+optionsAnimations.open)*scale, (i*40+80+14.5)*scale);
-                                        ctx.lineTo((posX+ 9.5 +45+optionsAnimations.open)*scale, (i*40+80+18.25   )*scale);
-                                        ctx.lineTo((posX+19.5 +45+optionsAnimations.open)*scale, (i*40+80+ 8.25   )*scale);
+                                        ctx.moveTo((posX+ 5.75+45+optionsAnimations.open)*scale, (i*40+80+14.5 -optionsAnimations.tabScroll)*scale);
+                                        ctx.lineTo((posX+ 9.5 +45+optionsAnimations.open)*scale, (i*40+80+18.25-optionsAnimations.tabScroll)*scale);
+                                        ctx.lineTo((posX+19.5 +45+optionsAnimations.open)*scale, (i*40+80+ 8.25-optionsAnimations.tabScroll)*scale);
                                         ctx.stroke();
                                         ctx.closePath();
                                     }
 
-                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'slider'){
                                     const text = element.data.text;
@@ -897,43 +902,53 @@ window.arrasModules = undefined;
 
                                     const sliderPercentage = (value-minimumValue)/(maximumValue-minimumValue);
 
-                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(colors.text.concat([opacity])));
                                     fillRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, sliderPercentage*137.5*scale, 20*scale],
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5-optionsAnimations.tabScroll)*scale, 150*scale, 20*scale],
+                                        toCssColor(colors.text.concat([opacity]))
+                                    );
+                                    fillRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5-optionsAnimations.tabScroll)*scale, sliderPercentage*137.5*scale, 20*scale],
                                         toCssColor(colors.green.concat([opacity*0xb2/0xff]))
                                     );
-                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5)*scale, 150*scale, 20*scale], toCssColor(colors.borders.concat([opacity])));
+                                    strokeRect(ctx,
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+2.5-optionsAnimations.tabScroll)*scale, 150*scale, 20*scale],
+                                        toCssColor(colors.borders.concat([opacity]))
+                                    );
 
                                     drawRect(ctx,
-                                        [(posX+sliderPercentage*137.5 +45+optionsAnimations.open)*scale, (i*40+80)*scale, 12.5*scale, 25*scale],
+                                        [(posX+sliderPercentage*137.5 +45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, 12.5*scale, 25*scale],
                                         toCssColor(colors.green.concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
 
-                                    drawText(ctx, text, [(posX+160 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+160 +45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'textInput'){
                                     const value = element.data.value;
                                     const placeHolder = element.data.placeHolder??'';
 
                                     drawRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, width*scale, 25*scale],
                                         toCssColor(colors.text.concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
 
                                     if(value != ''){
-                                        fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-5.5)*scale], 12.5, 'left',
+                                        fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-5.5-optionsAnimations.tabScroll)*scale], 12.5, 'left',
                                             toCssColor(colors.borders.concat([opacity])));
                                     }else{
-                                        fillText(ctx, placeHolder, [(posX+12 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 12.5, 'left',
+                                        fillText(ctx, placeHolder, [(posX+12 +45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 12.5, 'left',
                                             toCssColor(colors.borders.concat([opacity*0x65/0xff])));
                                     }
                                 }else if(element.type == 'dropdown'){
                                     const value = element.data.value;
+                                    const open = element.data.open??false;
+                                    const options = element.data.options??{};
+                                    const optionsLength = Object.keys(options).length;
+                                    const openAnimation = element.data.openAnimation = open*(1-.9)+(element.data.openAnimation??0)*.9;
 
                                     drawRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale],
+                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, width*scale, 25*scale],
                                         toCssColor(colors.text.concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
@@ -941,47 +956,92 @@ window.arrasModules = undefined;
                                     ctx.beginPath();
                                     ctx.lineWidth = 0;
                                     ctx.fillStyle = toCssColor(colors.borders);
-                                    ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90- .625)*scale);
-                                    ctx.lineTo((posX+width-15    +45+optionsAnimations.open)*scale, (i*40+90+5.625)*scale);
-                                    ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90- .625)*scale);
+                                    ctx.moveTo((posX+width-21.25 +45+optionsAnimations.open)*scale, (i*40+90- .625-optionsAnimations.tabScroll)*scale);
+                                    ctx.lineTo((posX+width-15    +45+optionsAnimations.open)*scale, (i*40+90+5.625-optionsAnimations.tabScroll)*scale);
+                                    ctx.lineTo((posX+width- 8.75 +45+optionsAnimations.open)*scale, (i*40+90- .625-optionsAnimations.tabScroll)*scale);
                                     ctx.fill();
                                     ctx.closePath();
                                     
-                                    drawText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'left',
+                                    drawText(ctx, options[value]??'', [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5-optionsAnimations.tabScroll)*scale], 12.5, lineWidth-.5, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
+
+                                    if(openAnimation > .005){
+                                        dropdowns.push(()=>{
+                                            fillRect(ctx,
+                                                [(posX+45+optionsAnimations.open)*scale, (i*40+105-optionsAnimations.tabScroll)*scale, width*scale, (openAnimation*optionsLength*25)*scale],
+                                                toCssColor(colors.text.concat([opacity]))
+                                            );
+
+                                            ctx.save();
+                                            ctx.beginPath();
+                                            ctx.rect((posX+45+optionsAnimations.open)*scale, (i*40+105-optionsAnimations.tabScroll)*scale, width*scale, (openAnimation*optionsLength*25)*scale);
+                                            ctx.clip();
+
+                                            let k = 0;
+                                            for(const [key, value] of Object.entries(options)){
+                                                if(k > 0){
+                                                    ctx.beginPath();
+                                                    ctx.lineWidth = lineWidth*scale;
+                                                    ctx.strokeStyle = toCssColor(colors.borders);
+                                                    ctx.lineCap = 'round';
+                                                    ctx.linejoin = 'round';
+                                                    ctx.moveTo((posX      +45+optionsAnimations.open)*scale,(i*40+105+k*25-optionsAnimations.tabScroll)*scale);
+                                                    ctx.lineTo((posX+width+45+optionsAnimations.open)*scale,(i*40+105+k*25-optionsAnimations.tabScroll)*scale);
+                                                    ctx.stroke();
+                                                }
+
+                                                drawText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5+(k+1)*25-optionsAnimations.tabScroll)*scale],
+                                                    12.5, lineWidth-.5, 'left',
+                                                    toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
+                                                k++;
+                                            }
+                                            ctx.restore();
+
+                                            strokeRect(ctx,
+                                                [(posX+45+optionsAnimations.open)*scale, (i*40+105-optionsAnimations.tabScroll)*scale, width*scale, (openAnimation*optionsLength*25)*scale],
+                                                toCssColor(colors.borders.concat([opacity]))
+                                            );
+                                        });
+                                    }
                                 }else if(element.type == 'button'){
                                     const text = element.data.text;
                                     const hover = element.data.hover??0;
 
-                                    fillRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.barrels.concat([opacity])));
+                                    fillRect(ctx,
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, width*scale, 25*scale],
+                                        toCssColor(colors.barrels.concat([opacity]))
+                                    );
 
                                     fillRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80+15)*scale, width*scale, 10*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80+15-optionsAnimations.tabScroll)*scale, width*scale, 10*scale],
                                         toCssColor(colors.borders.concat([opacity*0x32/0xff]))
                                     );
 
                                     fillRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, (hover==2?15:25)*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, width*scale, (hover==2?15:25)*scale],
                                         toCssColor((hover==1 ? colors.text:colors.borders).concat([opacity*([0x00, 0x25, 0x65][hover])/0xff]))
                                     );
 
-                                    strokeRect(ctx, [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, width*scale, 25*scale], toCssColor(colors.borders.concat([opacity])));
+                                    strokeRect(ctx,
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, width*scale, 25*scale],
+                                        toCssColor(colors.borders.concat([opacity]))
+                                    );
 
-                                    drawText(ctx, text, [(posX+width/2 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 12.5, lineWidth-.5, 'center',
+                                    drawText(ctx, text, [(posX+width/2 +45+optionsAnimations.open)*scale, (i*40+100-7.5-optionsAnimations.tabScroll)*scale], 12.5, lineWidth-.5, 'center',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'keybind'){
                                     const text = element.data.text;
                                     const value = element.data.value;
 
                                     drawRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, 25*scale, 25*scale],
                                         toCssColor(colors.text.concat([opacity])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
-                                    fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5)*scale], 15, 'center',
+                                    fillText(ctx, value, [(posX+12.5 +45+optionsAnimations.open)*scale, (i*40+100-7.5-optionsAnimations.tabScroll)*scale], 15, 'center',
                                         toCssColor(colors.borders.concat([opacity])));
 
-                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }else if(element.type == 'color'){
                                     const text = element.data.text;
@@ -989,17 +1049,18 @@ window.arrasModules = undefined;
                                     const hasOpacity = element.data.hasOpacity;
 
                                     drawRect(ctx,
-                                        [(posX +45+optionsAnimations.open)*scale, (i*40+80)*scale, 25*scale, 25*scale],
+                                        [(posX+45+optionsAnimations.open)*scale, (i*40+80-optionsAnimations.tabScroll)*scale, 25*scale, 25*scale],
                                         toCssColor(value.slice(0,3).concat([opacity*(hasOpacity?value[3]:1)])),
                                         toCssColor(colors.borders.concat([opacity]))
                                     );
 
-                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5)*scale], 15, lineWidth, 'left',
+                                    drawText(ctx, text, [(posX+35 +45+optionsAnimations.open)*scale, (i*40+100-6.5-optionsAnimations.tabScroll)*scale], 15, lineWidth, 'left',
                                         toCssColor(colors.text.concat([opacity])) , toCssColor(colors.borders.concat([opacity])));
                                 }
                                 column += columnSpan;
                             }
                         }
+                        return dropdowns.reverse();
                     }
                     arrasAddEventListener('animationFrame', ()=>{
                         if(!document.getElementById('patchLoaderCanvas') || document.getElementById('patchLoaderCanvas').querySelectorAll('canvas').length <= 0){return;}
@@ -1042,7 +1103,25 @@ window.arrasModules = undefined;
                         optionsAnimations.open = arrasApproach(optionsAnimations.open, optionsOpen?0:-540);
                         optionsAnimations.closed = arrasApproach(optionsAnimations.closed, optionsOpen?-200:0);
                         optionsAnimations.tab = arrasApproach(optionsAnimations.tab, selectedTab/menuTabs.length*410+75);
+                        optionsAnimations.tabScroll = arrasApproach(optionsAnimations.tabScroll, tabScroll);
                         displayTab = (optionsAnimations.tab-75)/410*menuTabs.length;
+                        if(Math.round(displayTab) != Math.round(prevDisplayTab)){
+                            tabScroll = 0;
+                            optionsAnimations.tabScroll = 0;
+
+                            let options = menuTabs[Math.round(displayTab)].options??[];
+                            for(let i=0; i<options.length; i++){
+                                const row = options[i];
+                                for(let j=0; j<row.length; j++){
+                                    const element = row[j];
+                                    if(element.type == 'dropdown'){
+                                        element.data.open = 0;
+                                        element.data.openAnimation = 0;
+                                    }
+                                }
+                            }
+                        }
+                        prevDisplayTab = displayTab;
 
                         if(optionsOpen && Math.round(displayTab) == 1){
                             for(input of document.body.querySelectorAll('input')){
@@ -1146,9 +1225,12 @@ window.arrasModules = undefined;
 
                         height = optionsAnimations.tabHeight -= (optionsAnimations.tabHeight-height)*.1;
                         displayHeight = optionsAnimations.tabDisplayHeight -= (optionsAnimations.tabDisplayHeight-displayHeight)*.1;
+                        height = Math.min(height, innerHeight/(innerWidth/canvas.width)/scale-(75+25));
+                        displayHeight = Math.min(displayHeight, innerHeight/(innerWidth/canvas.width)/scale-(75+25));
 
                         if(!(leftTab.useExistingTab && rightTab.useExistingTab)){
                             let opacity = 1;
+                            let dropdowns = [];
                             if(menuTabs[Math.round(displayTab)].useExistingTab){
                                 opacity = Math.abs(displayTab-Math.round(displayTab))*2;
                             }
@@ -1156,7 +1238,14 @@ window.arrasModules = undefined;
                             fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+height)*scale, 460*scale, (displayHeight-height+15)*scale], toCssColor(colors.barrels));
 
                             if(!menuTabs[Math.round(displayTab)].useExistingTab){
-                                drawOptions(canvas, menuTabs[Math.round(displayTab)].options, 1-Math.abs(displayTab-Math.round(displayTab))*2);
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.rect((25+optionsAnimations.open)*scale, 90*scale, 460*scale, (displayHeight-25)*scale);
+                                ctx.clip();
+
+                                dropdowns = drawOptions(canvas, menuTabs[Math.round(displayTab)].options, 1-Math.abs(displayTab-Math.round(displayTab))*2);
+
+                                ctx.restore();
                             }
 
                             fillRect(ctx, [(25+optionsAnimations.open)*scale, (75-15+displayHeight)*scale, 460*scale, 15*scale], toCssColor(colors.barrels));
@@ -1171,6 +1260,10 @@ window.arrasModules = undefined;
                             ctx.lineTo((485+optionsAnimations.open)*scale,(75+displayHeight)*scale);
                             ctx.lineTo((485+optionsAnimations.open)*scale,(75-15+height)*scale);
                             ctx.stroke();
+
+                            for(const dropdown of dropdowns){
+                                dropdown();
+                            }
                         }
 
                         fillRect(ctx, [(75+optionsAnimations.open)*scale, 25*scale, 410*scale, 50*scale], toCssColor(colors.barrels));
@@ -1236,19 +1329,23 @@ window.arrasModules = undefined;
                         }
                     });
                     function inputDown(identifier, event){
-                        clickButtonIds[identifier] = -1;
                         if((!event.originalEvent.isTrusted && identifier == 'mouse') || identifier == 4096)return;
 
                         let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
                         let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
                         const scale = interfaceScale*innerWidth/canvas.width;
+
+                        clickButtonIds[identifier] = -1;
+                        wheelIds[identifier] = event.originalEvent.clientY/scale;
+
                         if(optionsOpen){
                             if(isCursorInsideRect(event.originalEvent,[(75+optionsAnimations.open)*scale,25*scale,(485+optionsAnimations.open)*scale,75*scale])){
                                 event.preventDefault();
                                 clickButtonIds[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 clickButtonIds[identifier] = Math.min(Math.max(clickButtonIds[identifier],0),menuTabs.length-1)+1;
                             }
-                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                            let highHeight = (75+Math.min(optionsAnimations.tabDisplayHeight,innerHeight/scale-(75+25)))*scale;
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,highHeight])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                     event.preventDefault();
                                 }
@@ -1257,6 +1354,7 @@ window.arrasModules = undefined;
                                 clickButtonIds[identifier] = 0;
                             }
                             
+                            let inOptions = isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,90*scale,(485+optionsAnimations.open)*scale,highHeight-15]);
                             let options = menuTabs[Math.round(displayTab)].options??[];
                             let thisButtonId = menuTabs.length+1;
                             for(let i=0; i<options.length; i++){
@@ -1275,8 +1373,8 @@ window.arrasModules = undefined;
                                     if(element.type == 'title'){
                                     }else if(element.type == 'text'){
                                     }else if(element.type == 'checkbox'){
-                                        if(isCursorInsideRect(event.originalEvent,
-                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                             ){
                                             clickButtonIds[identifier] = thisButtonId;
 
@@ -1286,8 +1384,8 @@ window.arrasModules = undefined;
                                         const minimumValue = element.data.minimumValue??0;
                                         const maximumValue = element.data.maximumValue??1;
 
-                                        if(isCursorInsideRect(event.originalEvent,
-                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+150+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+150+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                             ){
                                             clickButtonIds[identifier] = thisButtonId;
 
@@ -1296,9 +1394,16 @@ window.arrasModules = undefined;
                                         }
                                     }else if(element.type == 'textInput'){
                                     }else if(element.type == 'dropdown'){
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
+                                            ){
+                                            element.data.open = !element.data.open;
+                                        }else{
+                                            element.data.open = false;
+                                        }
                                     }else if(element.type == 'button'){
-                                        if(isCursorInsideRect(event.originalEvent,
-                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                             ){
                                             clickButtonIds[identifier] = thisButtonId;
 
@@ -1346,7 +1451,8 @@ window.arrasModules = undefined;
                                     arrasDispatchEvent(inputup);
                                 }
                             }
-                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                            let highHeight = (75+Math.min(optionsAnimations.tabDisplayHeight,innerHeight/scale-(75+25)))*scale;
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,highHeight])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                     event.preventDefault();
                                 }
@@ -1357,6 +1463,7 @@ window.arrasModules = undefined;
                                 }
                             }
                             
+                            let inOptions = isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,90*scale,(485+optionsAnimations.open)*scale,highHeight-15]);
                             let options = menuTabs[Math.round(displayTab)].options??[];
                             let thisButtonId = menuTabs.length+1;
                             for(let i=0; i<options.length; i++){
@@ -1375,8 +1482,8 @@ window.arrasModules = undefined;
                                     if(element.type == 'title'){
                                     }else if(element.type == 'text'){
                                     }else if(element.type == 'checkbox'){
-                                        if(isCursorInsideRect(event.originalEvent,
-                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                             ){
                                             element.data.hover = 1;
                                             if(clickButtonIds[identifier] == thisButtonId){
@@ -1389,8 +1496,8 @@ window.arrasModules = undefined;
                                     }else if(element.type == 'textInput'){
                                     }else if(element.type == 'dropdown'){
                                     }else if(element.type == 'button'){
-                                        if(isCursorInsideRect(event.originalEvent,
-                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                        if(inOptions && isCursorInsideRect(event.originalEvent,
+                                            [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                             ){
                                             element.data.hover = 1;
                                             if(clickButtonIds[identifier] == thisButtonId){
@@ -1416,6 +1523,7 @@ window.arrasModules = undefined;
                             }
                         }
                         delete clickButtonIds[identifier];
+                        delete wheelIds[identifier];
                         if(glowingTabs[identifier]){
                             delete glowingTabs[identifier];
                         }
@@ -1436,7 +1544,9 @@ window.arrasModules = undefined;
                                 glowingTabs[identifier] = Math.floor((event.originalEvent.clientX-(75+optionsAnimations.open)*scale)/(410/menuTabs.length*scale));
                                 glowingTabs[identifier] = Math.min(Math.max(glowingTabs[identifier],0),menuTabs.length-1);
                             }
-                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,(75+optionsAnimations.tabDisplayHeight)*scale])){
+                            let highHeight = (75+Math.min(optionsAnimations.tabDisplayHeight,innerHeight/scale-(75+25)))*scale;
+                            let inOptions = isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,90*scale,(485+optionsAnimations.open)*scale,highHeight-15]);
+                            if(isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,75*scale,(485+optionsAnimations.open)*scale,highHeight])){
                                 if(!menuTabs[Math.round(displayTab)].useExistingTab){
                                     event.preventDefault();
                                     let inputLocation = [event.originalEvent.clientX/scale, Math.round((event.originalEvent.clientY/scale-75)/40)*40+75];
@@ -1455,6 +1565,11 @@ window.arrasModules = undefined;
                                         inputmove = new ArrasMouseEvent('mousemove',inputLocation[0]*scale,inputLocation[1]*scale,0,0,0,1);
                                     }
                                     arrasDispatchEvent(inputmove);
+                                }
+                                if(wheelIds[identifier] !== undefined && identifier != 'mouse' && inOptions){
+                                    tabScroll -= event.originalEvent.clientY/scale-wheelIds[identifier];
+                                    wheelIds[identifier] = event.originalEvent.clientY/scale;
+                                    tabScroll = Math.min(Math.max(tabScroll,0),Math.max(optionsAnimations.tabDisplayHeight-(innerHeight/scale-(75+25)),0));
                                 }
                             }
                             
@@ -1477,8 +1592,8 @@ window.arrasModules = undefined;
                                     }else if(element.type == 'text'){
                                     }else if(element.type == 'checkbox'){
                                         if(element.data.hover != 2){
-                                            if(isCursorInsideRect(event.originalEvent,
-                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            if(inOptions && isCursorInsideRect(event.originalEvent,
+                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+25+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                                 ){
                                                 element.data.hover = 1;
                                             }else{
@@ -1497,8 +1612,8 @@ window.arrasModules = undefined;
                                     }else if(element.type == 'dropdown'){
                                     }else if(element.type == 'button'){
                                         if(element.data.hover != 2){
-                                            if(isCursorInsideRect(event.originalEvent,
-                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105)*scale])
+                                            if(inOptions && isCursorInsideRect(event.originalEvent,
+                                                [(posX+45+optionsAnimations.open)*scale,(i*40+80-optionsAnimations.tabScroll)*scale,(posX+width+45+optionsAnimations.open)*scale,(i*40+105-optionsAnimations.tabScroll)*scale])
                                                 ){
                                                 element.data.hover = 1;
                                             }else{
@@ -1516,6 +1631,26 @@ window.arrasModules = undefined;
                     }
                     arrasAddEventListener('mousemove', (event)=>{inputMove('mouse', event);});
                     arrasAddEventListener('touchmove', (event)=>{for(i of event.originalEvent.changedTouches){inputMove(i.identifier, {originalEvent:i, preventDefault:event.preventDefault});}});
+
+                    function inputWheel(identifier, event){
+                        if((!event.originalEvent.isTrusted && identifier == 'mouse') || identifier == 4096)return;
+
+                        let isCursorInsideRect = (cursor, rect)=>{return (cursor.clientX>=rect[0] && cursor.clientX<rect[2])&&(cursor.clientY>=rect[1] && cursor.clientY<rect[3]);};
+                        let canvas = document.getElementById('patchLoaderCanvas').querySelector('canvas');
+                        const scale = interfaceScale*innerWidth/canvas.width;
+                        glowingTabs[identifier] = -1;
+                        if(optionsOpen){
+                            let highHeight = (75+Math.min(optionsAnimations.tabDisplayHeight,innerHeight/scale-(75+25)))*scale;
+                            let inOptions = isCursorInsideRect(event.originalEvent,[(25+optionsAnimations.open)*scale,90*scale,(485+optionsAnimations.open)*scale,highHeight-15]);
+                            if(inOptions && !menuTabs[Math.round(displayTab)].useExistingTab){
+                                event.preventDefault();
+                                const deltaMode = event.originalEvent.deltaMode;
+                                tabScroll += event.originalEvent.deltaY * (1 === deltaMode ? 40 : 2 === deltaMode ? 320 : 1);
+                                tabScroll = Math.min(Math.max(tabScroll,0),Math.max(optionsAnimations.tabDisplayHeight-(innerHeight/scale-(75+25)),0));
+                            }
+                        }
+                    }
+                    arrasAddEventListener('wheel', (event)=>{inputWheel('mouse', event);});
                 })();`
             }
         }]
